@@ -15,7 +15,7 @@ Spiketimes are binned to the next *largest* multiple of `period`. Ie a spike hap
 
 For a cluster sampled at 30 000Hz...
 ```julia
-Laska.frequency(cluster, 30000)
+LaskaStats.frequency(cluster, 30000)
 ```
 ...will return spikes/second.
 

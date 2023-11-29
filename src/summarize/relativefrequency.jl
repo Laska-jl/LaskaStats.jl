@@ -9,8 +9,8 @@ Calculate relative frequency of a `RelativeCluster`/collection of spikes from a 
 
     relativefrequency(vec::Vector{Vector{T}}, period::N) where {T<:Real,N<:Real}
 
-A baseline is calculated for each trigger session. It is based on the mean number of 
-spikes/period in bins before time=0.
+A baseline is calculated for *each* trigger session. It is based on the mean number of 
+spikes/period in bins in before time=0.
 
 """
 function relativefrequency(vec::Vector{Vector{T}}, period::N) where {T<:Real,N<:Real}
