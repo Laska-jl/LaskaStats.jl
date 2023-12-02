@@ -1,6 +1,7 @@
 module LaskaStats
 
-using LaskaCore
+using Reexport
+@reexport using LaskaCore
 using Statistics
 
 # Summarizing statistics
