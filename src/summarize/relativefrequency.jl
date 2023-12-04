@@ -82,6 +82,8 @@ function relativefrequency(vec::Vector{Vector{T}}, steps::StepRange{T,T}) where 
 
     return out
 end
+
+
 function baselineadjust(vec::Vector{T}, baseline::Float64) where {T<:Real}
     out::Vector{Float64} = Vector{Float64}(undef, length(vec))
     if !iszero(baseline)

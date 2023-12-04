@@ -104,8 +104,8 @@ function frequency(times::Vector{T}, period::T) where {T<:Real}
 end
 
 
-function frequency(times::Vector{T}, period::T, steps::StepRange{T,T}) where {T<:Real}
-
+function frequency(times::Vector{T}, steps::StepRange{T,T}) where {T<:Real}
+    period::T = steps.step
     # NOTE: Should the binning be different? Use Laska.arbitraryround instead?
     accumulator::Dict{T,Int64} = Dict{T,Int64}(t => 0 for t in steps)
 
