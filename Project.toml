@@ -1,7 +1,7 @@
 name = "LaskaStats"
 uuid = "de767ba9-e829-4e7c-bf82-062dc00bf36c"
 authors = ["Elias Sjölin", "<elias.sjolin@gmail.com>"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 LaskaCore = "9ad29ce2-7782-4744-ab48-6ef9cc0286bb"

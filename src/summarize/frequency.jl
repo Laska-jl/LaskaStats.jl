@@ -53,7 +53,7 @@ function frequency(vec::Vector{Vector{T}}, period::T, removefirst::Bool=false) w
             out[n] = zeros(T, length(len))
             continue
         end
-        out[n] = frequency(vec[n], period, len)
+        out[n] = frequency(vec[n], len)
     end
     if removefirst
         for i in eachindex(out)
@@ -68,14 +68,13 @@ end
 
 # With steprange
 function frequency(vec::Vector{Vector{T}}, steps::StepRange{T,T}, removefirst::Bool=false) where {T<:Real}
-    period::T = steps.step
     out::Vector{Vector{T}} = Vector{Vector{T}}(undef, length(vec))
     for n in eachindex(out)
         if iszero(length(vec[n]))
             out[n] = zeros(T, length(steps))
             continue
         end
-        out[n] = frequency(vec[n], period, steps)
+        out[n] = frequency(vec[n], steps)
     end
     if removefirst
         for i in eachindex(out)
