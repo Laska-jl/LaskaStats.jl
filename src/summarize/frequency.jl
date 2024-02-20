@@ -27,12 +27,12 @@ Will return the n:th bin which describes the number of spikes occuring between `
 
 
 """
-function frequency(cluster::Cluster, period::T) where {T<:Real}
+function frequency(cluster::Cluster, period::T) where {T <: Real}
     times = spiketimes(cluster)
     return frequency(times, period)
 end
 
-function frequency(cluster::RelativeCluster{N}, period::T) where {T<:Real,N<:Real}
+function frequency(cluster::RelativeCluster{N}, period::T) where {T <: Real, N <: Real}
     times::Vector{Vector{N}} = spiketimes(cluster)
     vec::Vector{N} = LaskaCore.unpackvector(times)
 
@@ -44,10 +44,11 @@ end
 # frequency at each depth. `relativefrequency` should return the relative frequency of each
 # individual trigger like the old one did.
 
-function frequency(vec::Vector{Vector{T}}, period::T, removefirst::Bool=false) where {T<:Real}
-
+function frequency(
+        vec::Vector{Vector{T}}, period::T, removefirst::Bool = false) where {T <: Real}
     out::Vector{Vector{T}} = Vector{Vector{T}}(undef, length(vec))
-    len = LaskaCore.roundup(LaskaCore.minval(vec), period):period:LaskaCore.roundup(LaskaCore.maxval(vec), period)
+    len = LaskaCore.roundup(LaskaCore.minval(vec), period):period:LaskaCore.roundup(
+        LaskaCore.maxval(vec), period)
     for n in eachindex(out)
         if iszero(length(vec[n]))
             out[n] = zeros(T, length(len))
@@ -63,11 +64,11 @@ function frequency(vec::Vector{Vector{T}}, period::T, removefirst::Bool=false) w
     else
         return out
     end
-
 end
 
 # With steprange
-function frequency(vec::Vector{Vector{T}}, steps::StepRange{T,T}, removefirst::Bool=false) where {T<:Real}
+function frequency(vec::Vector{Vector{T}}, steps::StepRange{T, T},
+        removefirst::Bool = false) where {T <: Real}
     out::Vector{Vector{T}} = Vector{Vector{T}}(undef, length(vec))
     for n in eachindex(out)
         if iszero(length(vec[n]))
@@ -84,14 +85,14 @@ function frequency(vec::Vector{Vector{T}}, steps::StepRange{T,T}, removefirst::B
     else
         return out
     end
-
 end
 
-
-function frequency(times::Vector{T}, period::T) where {T<:Real}
+function frequency(times::Vector{T}, period::T) where {T <: Real}
 
     # NOTE: Should the binning be different? Use Laska.arbitraryround instead?
-    accumulator::Dict{T,Int64} = Dict{T,Int64}(t => 0 for t in LaskaCore.roundup(minimum(times; init=0), period):period:LaskaCore.roundup(maximum(times; init=0), period))
+    accumulator::Dict{T, Int64} = Dict{T, Int64}(t => 0
+    for t in LaskaCore.roundup(minimum(times; init = 0), period):period:LaskaCore.roundup(
+        maximum(times; init = 0), period))
 
     @inbounds for n in eachindex(times)
         accumulator[LaskaCore.roundup(times[n], period)] += 1
@@ -102,11 +103,10 @@ function frequency(times::Vector{T}, period::T) where {T<:Real}
     return collect(values(accumulator))[sorter]
 end
 
-
-function frequency(times::Vector{T}, steps::StepRange{T,T}) where {T<:Real}
+function frequency(times::Vector{T}, steps::StepRange{T, T}) where {T <: Real}
     period::T = steps.step
     # NOTE: Should the binning be different? Use Laska.arbitraryround instead?
-    accumulator::Dict{T,Int64} = Dict{T,Int64}(t => 0 for t in steps)
+    accumulator::Dict{T, Int64} = Dict{T, Int64}(t => 0 for t in steps)
 
     @inbounds for n in eachindex(times)
         accumulator[LaskaCore.roundup(times[n], period)] += 1
@@ -116,5 +116,3 @@ function frequency(times::Vector{T}, steps::StepRange{T,T}) where {T<:Real}
 
     return collect(values(accumulator))[sorter]
 end
-
-

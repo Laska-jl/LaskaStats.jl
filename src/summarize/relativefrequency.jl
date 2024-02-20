@@ -26,7 +26,7 @@ relativefrequency(times, -1500:300:1500)
 ```
 
 """
-function relativefrequency(vec::Vector{Vector{T}}, period::N) where {T<:Real,N<:Real}
+function relativefrequency(vec::Vector{Vector{T}}, period::N) where {T <: Real, N <: Real}
     absolutes::Vector{Vector{Float64}} = frequency(vec, period, true)
     abslen = length(absolutes)
     # Determine number of bins before 0
@@ -54,7 +54,7 @@ function relativefrequency(vec::Vector{Vector{T}}, period::N) where {T<:Real,N<:
     return out
 end
 
-function relativefrequency(vec::Vector{Vector{T}}, steps::StepRange{T,T}) where {T<:Real}
+function relativefrequency(vec::Vector{Vector{T}}, steps::StepRange{T, T}) where {T <: Real}
     period = steps.step
     absolutes::Vector{Vector{Float64}} = frequency(vec, steps, true)
     abslen = length(absolutes)
@@ -83,8 +83,7 @@ function relativefrequency(vec::Vector{Vector{T}}, steps::StepRange{T,T}) where 
     return out
 end
 
-
-function baselineadjust(vec::Vector{T}, baseline::Float64) where {T<:Real}
+function baselineadjust(vec::Vector{T}, baseline::Float64) where {T <: Real}
     out::Vector{Float64} = Vector{Float64}(undef, length(vec))
     if !iszero(baseline)
         for n in eachindex(vec)
@@ -94,7 +93,7 @@ function baselineadjust(vec::Vector{T}, baseline::Float64) where {T<:Real}
     return out
 end
 
-function baselineadjust!(vec::Vector{T}, baseline::Float64) where {T<:AbstractFloat}
+function baselineadjust!(vec::Vector{T}, baseline::Float64) where {T <: AbstractFloat}
     if !iszero(baseline)
         for n in eachindex(vec)
             vec[n] /= baseline
