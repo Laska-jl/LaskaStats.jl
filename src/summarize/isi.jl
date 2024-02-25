@@ -26,7 +26,7 @@ end
 
 In-place version of [`isi`](@ref). Length of `out` must be equal to `length(spikes) - 1`.
 """
-function isi!(out::Vector{T}, spikes::Vector{T}) where {T}
+function isi!(out::Vector{T}, spikes::Vector{T}) where T
     @assert length(out) == length(spikes) - 1
     @inbounds @views for i in 1:length(out)
         out[i] = spikes[i + 1] - spikes[i]

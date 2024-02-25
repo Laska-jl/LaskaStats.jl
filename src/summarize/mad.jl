@@ -14,10 +14,15 @@ function mad(cluster::T) where {T <: AbstractCluster}
 end
 
 function mad(vec::Vector{T}) where {T <: Real}
-    isis = isi(vec)
+    isis = Float64.(isi(vec))
     medianisi = median(isis)
     @inbounds @views for i in eachindex(isis)
         isis[i] = abs(isis[i] - medianisi)
     end
     return median(isis)
+end
+
+function mad!(exp::PhyOutput)
+    clusters = @views (clustervector(exp))
+    exp.info.mad = mad.(spiketimes.(clusters))
 end
