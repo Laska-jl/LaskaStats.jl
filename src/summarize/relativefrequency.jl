@@ -36,7 +36,6 @@ function relativefrequency(vec::Vector{Vector{T}}, period::N) where {T <: Real, 
     @views for n in eachindex(baselines)
         baselines[n] = sum(absolutes[n][1:nbinspre]) / nbinspre
     end
-
     for n in eachindex(baselines)
         baselineadjust!(absolutes[n], baselines[n])
     end
