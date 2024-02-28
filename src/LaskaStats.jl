@@ -13,6 +13,5 @@ include("summarize/isi.jl")
 export cv2, cv2mean, mad, relativefrequency, frequency, isi
 
 include("normalize/rangenormalize.jl")
-include("normalize/clip.jl")
 
 end

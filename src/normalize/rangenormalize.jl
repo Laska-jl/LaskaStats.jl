@@ -13,8 +13,11 @@ Normalize an `AbstractVector` in-place to values between `range[1]` (``a``) and 
 X' = a + \frac{(X-X_{min})(b-a)}{X_{max}-X_{min}}
 ```
 """
-function rangenormalize!(v::AbstractVector{T}, min_v::T, max_v::T, range::NTuple{2, T}) where {T<:AbstractFloat}
-	diffx = max_v - min_v
+function rangenormalize!(v::AbstractVector{T},
+        min_v::T,
+        max_v::T,
+        range::NTuple{2, T}) where {T <: AbstractFloat}
+    diffx = max_v - min_v
     rangediff = range[2] - range[1]
     @. v = (((v - min_v) * rangediff) / diffx) + range[1]
 end
@@ -29,7 +32,10 @@ Normalize an `AbstractVector` to values between `range[1]` (``a``) and `range[2]
 X' = a + \frac{(X-X_{min})(b-a)}{X_{max}-X_{min}}
 ```
 """
-function rangenormalize(v::AbstractVector{T}, min_v::T, max_v::T, range::NTuple{2, T}) where T
+function rangenormalize(v::AbstractVector{T},
+        min_v::T,
+        max_v::T,
+        range::NTuple{2, T}) where {T}
     out = Vector{Float64}(deepcopy(v))
     rangenormalize!(out, min_v, max_v, range)
     return out
@@ -43,11 +49,13 @@ end
 Normalize an `AbstractVector` in-place to values between 0 and 1. `min_v` and `max_v` may be provided as "manual" extrema of the vector.
 
 ```math
-X' = rac{(X-X_{min})}{X_{max}-X_{min}}
+X' = \frac{(X-X_{min})}{X_{max}-X_{min}}
 ```
 """
-function rangenormalize!(v::AbstractVector{T}, min_v::T, max_v::T) where {T<:AbstractFloat}
-	diffx = max_v - min_v
+function rangenormalize!(v::AbstractVector{T},
+        min_v::T,
+        max_v::T) where {T <: AbstractFloat}
+    diffx = max_v - min_v
     @. v = (v - min_v) / diffx
 end
 
@@ -60,7 +68,7 @@ Normalize an `AbstractVector` to values between 0 and 1. `min_v` and `max_v` may
 X' = \frac{(X-X_{min})}{X_{max}-X_{min}}
 ```
 """
-function rangenormalize(v::AbstractVector{T}, min_v::T, max_v::T) where T
+function rangenormalize(v::AbstractVector{T}, min_v::T, max_v::T) where {T}
     out = Vector{Float64}(deepcopy(v))
     rangenormalize!(out, min_v, max_v)
     return out
@@ -76,8 +84,9 @@ Normalize an `AbstractVector` in-place to values between `range[1]` (``a``) and 
 X' = a + \frac{(X-X_{min})(b-a)}{X_{max}-X_{min}}
 ```
 """
-function rangenormalize!(v::AbstractVector{T}, range::NTuple{2,T}) where {T<:AbstractFloat}
-	min_v, max_v = extrema(v)
+function rangenormalize!(v::AbstractVector{T},
+        range::NTuple{2, T}) where {T <: AbstractFloat}
+    min_v, max_v = extrema(v)
     diffx = max_v - min_v
     rangediff = range[2] - range[1]
     @. v = (((v - min_v) * rangediff) / diffx) + range[1]
@@ -92,7 +101,7 @@ Normalize a `Vector`  to values between `range[1]` (``a``) and `range[2]` (``b``
 X' = a + \frac{(X-X_{min})(b-a)}{X_{max}-X_{min}}
 ```
 """
-function rangenormalize(v::AbstractVector{T}, range::NTuple{2,T}) where T
+function rangenormalize(v::AbstractVector{T}, range::NTuple{2, T}) where {T}
     out = Vector{Float64}(deepcopy(v))
     rangenormalize!(out, range)
     return out
@@ -109,7 +118,7 @@ Normalize a `Vector` to values between 0--1 in-place.
 X' = \frac{(X-X_{min})}{X_{max}-X_{min}}
 ```
 """
-function rangenormalize!(v::AbstractVector{T}) where {T<:AbstractFloat}
+function rangenormalize!(v::AbstractVector{T}) where {T <: AbstractFloat}
     rangenormalize!(v, minimum(v), maximum(v))
 end
 
@@ -141,9 +150,12 @@ The `min_v`, `max_v` and `range` vectors should be the same length as `size(m, 2
 X' = a + \frac{(X-X_{min})(b-a)}{X_{max}-X_{min}}
 ```
 """
-function rangenormalizecols!(m::Matrix{T}, min_v::Vector{T}, max_v::Vector{T}, range::Vector{NTuple{2, T}}) where {T<:AbstractFloat}
+function rangenormalizecols!(m::Matrix{T},
+        min_v::Vector{T},
+        max_v::Vector{T},
+        range::Vector{NTuple{2, T}}) where {T <: AbstractFloat}
     for j in 1:size(m, 2)
-        @views rangenormalize!(m[:,j], min_v[j], max_v[j], range[j])
+        @views rangenormalize!(m[:, j], min_v[j], max_v[j], range[j])
     end
 end
 
@@ -158,9 +170,11 @@ The `min_v` and `max_v` vectors should be the same length as `size(m, 2)`. For e
 X' = \frac{(X-X_{min})}{X_{max}-X_{min}}
 ```
 """
-function rangenormalizecols!(m::Matrix{T}, min_v::Vector{T}, max_v::Vector{T}) where {T<:AbstractFloat}
+function rangenormalizecols!(m::Matrix{T},
+        min_v::Vector{T},
+        max_v::Vector{T}) where {T <: AbstractFloat}
     for j in 1:size(m, 2)
-        @views rangenormalize!(m[:,j], min_v[j], max_v[j])
+        @views rangenormalize!(m[:, j], min_v[j], max_v[j])
     end
 end
 
@@ -175,9 +189,12 @@ The `min_v` and `min_v` vectors should be the same length as `size(m, 2)`. For e
 X' = a + \frac{(X-X_{min})(b-a)}{X_{max}-X_{min}}
 ```
 """
-function rangenormalizecols!(m::Matrix{T}, min_v::Vector{T}, max_v::Vector{T}, range::NTuple{2, T}) where {T<:AbstractFloat}
+function rangenormalizecols!(m::Matrix{T},
+        min_v::Vector{T},
+        max_v::Vector{T},
+        range::NTuple{2, T}) where {T <: AbstractFloat}
     for j in 1:size(m, 2)
-        @views rangenormalize!(m[:,j], min_v[j], max_v[j], range)
+        @views rangenormalize!(m[:, j], min_v[j], max_v[j], range)
     end
 end
 
@@ -192,9 +209,12 @@ The same `min_v`, `max_v` and `range` values are used for every column.
 X' = a + \frac{(X-X_{min})(b-a)}{X_{max}-X_{min}}
 ```
 """
-function rangenormalizecols!(m::Matrix{T}, min_v::T, max_v::T, range::NTuple{2, T}) where {T<:AbstractFloat}
+function rangenormalizecols!(m::Matrix{T},
+        min_v::T,
+        max_v::T,
+        range::NTuple{2, T}) where {T <: AbstractFloat}
     for j in 1:size(m, 2)
-        @views rangenormalize!(m[:,j], min_v, max_v, range)
+        @views rangenormalize!(m[:, j], min_v, max_v, range)
     end
 end
 
@@ -207,9 +227,9 @@ Normalize each column of the `Matrix` `m` in-place to values between 0--1. Each 
 X' = \frac{(X-X_{min})}{X_{max}-X_{min}}
 ```
 """
-function rangenormalizecols!(m::Matrix{T}) where {T<:AbstractFloat}
+function rangenormalizecols!(m::Matrix{T}) where {T <: AbstractFloat}
     for j in 1:size(m, 2)
-        @views rangenormalize!(m[:,j], minimum(m[:,j]), maximum(m[:,j]))
+        @views rangenormalize!(m[:, j], minimum(m[:, j]), maximum(m[:, j]))
     end
 end
 
@@ -224,9 +244,9 @@ Each column is normalized separately.
 X' = a + \frac{(X-X_{min})(b-a)}{X_{max}-X_{min}}
 ```
 """
-function rangenormalizecols!(m::Matrix{T}, range::NTuple{2, T}) where {T<:AbstractFloat}
+function rangenormalizecols!(m::Matrix{T}, range::NTuple{2, T}) where {T <: AbstractFloat}
     for j in 1:size(m, 2)
-        @views rangenormalize!(m[:,j], minimum(m[:,j]), maximum(m[:,j]), range)
+        @views rangenormalize!(m[:, j], minimum(m[:, j]), maximum(m[:, j]), range)
     end
 end
 
@@ -241,8 +261,9 @@ The `range` vector should be the same length as `size(m, 2)`. Index `j` will be 
 X' = a + \frac{(X-X_{min})(b-a)}{X_{max}-X_{min}}
 ```
 """
-function rangenormalizecols!(m::Matrix{T}, range::Vector{NTuple{2, T}}) where {T<:AbstractFloat}
+function rangenormalizecols!(m::Matrix{T},
+        range::Vector{NTuple{2, T}}) where {T <: AbstractFloat}
     for j in 1:size(m, 2)
-        @views rangenormalize!(m[:,j], minimum(m[:,j]), maximum(m[:,j]), range[j])
+        @views rangenormalize!(m[:, j], minimum(m[:, j]), maximum(m[:, j]), range[j])
     end
 end
