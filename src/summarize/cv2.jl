@@ -36,9 +36,9 @@ function cv2mean(cluster::Cluster)
     cv2mean(spikes)
 end
 
-function cv2mean(spikes::Vector{T}) where T
+function cv2mean(spikes::AbstractVector{T}) where {T}
     nspik = length(spikes) - 2
-	out = 0.0
+    out = 0.0
     @views @simd for n in 1:(length(spikes) - 2)
         isi1 = spikes[n + 1] - spikes[n]
         isi2 = spikes[n + 2] - spikes[n + 1]
@@ -46,7 +46,6 @@ function cv2mean(spikes::Vector{T}) where T
     end
     return out / nspik
 end
-
 
 """
     calculatecv2(n::T, nplusone::T)
