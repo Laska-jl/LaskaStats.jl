@@ -6,6 +6,8 @@ If a normal <:AbstractVector is passed the output will be in spikes/bin.
 
 using LaskaCore: RelativeSpikeVector
 
+# TODO: Add methods with Unitful units for function using step(?)
+
 """
 
     frequency(cluster::Cluster, period::T) where {T<:Real}
@@ -64,11 +66,12 @@ end
 
 # frequency of RelativeSpikes
 
-function frequency(times::RelativeSpikeVector{T, U}, period::T) where {T, U}
+function frequency(times::RelativeSpikeVector{T, U}, period::P) where {T, U, P}
     tconv = LaskaCore.samplerate(times) / period
     out = Vector{Vector{Float64}}(undef, length(times))
-    len = LaskaCore.rounddown(LaskaCore.minval(times), period):period:LaskaCore.rounddown(LaskaCore.maxval(times),
-        period)
+    lowerbound = LaskaCore.rounddown(LaskaCore.minval(times), period)
+    upperbound = LaskaCore.rounddown(LaskaCore.maxval(times), period)
+    len = lowerbound:period:upperbound
     for n in eachindex(out)
         out[n] = iszero(length(times[n])) ? zeros(Float64, length(len)) :
                  frequency(times[n], len) .* tconv
@@ -76,8 +79,22 @@ function frequency(times::RelativeSpikeVector{T, U}, period::T) where {T, U}
     return out
 end
 
+function frequency(times::RelativeSpikeVector{T, U},
+        period::P) where {T, U, P <: LaskaCore.TUnit}
+    periodconv = Float64(LaskaCore.timetosamplerate(times, period))
+    tconv = LaskaCore.samplerate(times) / periodconv
+    out = Vector{Vector{Float64}}(undef, length(times))
+    lowerbound = LaskaCore.rounddown(LaskaCore.minval(times), periodconv)
+    upperbound = LaskaCore.rounddown(LaskaCore.maxval(times), periodconv)
+    len = lowerbound:periodconv:upperbound
+    for n in eachindex(out)
+        out[n] = iszero(length(times[n])) ? zeros(Float64, length(len)) :
+                 frequency(times[n], len) .* tconv
+    end
+    return out
+end
 # With steprange
-function frequency(times::RelativeSpikeVector, steps::StepRange{T}) where {T}
+function frequency(times::RelativeSpikeVector, steps::AbstractRange)
     tconv = LaskaCore.samplerate(times) / steps.step
     out = Vector{Vector{Float64}}(undef, length(times))
     tmp = LaskaCore.spikes_in_timerange(times, steps[begin], steps[end])
@@ -88,6 +105,18 @@ function frequency(times::RelativeSpikeVector, steps::StepRange{T}) where {T}
     return out
 end
 
+function frequency(times::RelativeSpikeVector,
+        steps::StepRange{T}) where {T <: LaskaCore.TUnit}
+    rang = timetosamplerate(times, steps)
+    tconv = LaskaCore.samplerate(times) / steps.step
+    out = Vector{Vector{Float64}}(undef, length(times))
+    tmp = LaskaCore.spikes_in_timerange(times, steps[begin], steps[end])
+    for n in eachindex(tmp)
+        out[n] = iszero(length(tmp[n])) ? zeros(T, length(steps)) :
+                 frequency(tmp[n], steps) .* tconv
+    end
+    return out
+end
 # Frequency for SpikeVector
 
 function frequency(times::SpikeVector{T}, period::T) where {T}
@@ -137,7 +166,7 @@ end
 
 # Versions without units/samplerates, just plain old binnin'
 
-function frequency(times::AbstractVector{T}, period::T) where {T}
+function frequency(times::AbstractVector{T}, period::P) where {T, P}
     # NOTE: Should the binning be different? Use Laska.arbitraryround instead?
     lowerbound = LaskaCore.rounddown(minimum(times, init = 0), period)
     upperbound = LaskaCore.rounddown(maximum(times, init = 0), period)
@@ -152,8 +181,25 @@ function frequency(times::AbstractVector{T}, period::T) where {T}
     return collect(values(accumulator))[sorter]
 end
 
-function frequency(times::AbstractVector{T}, steps::StepRange{T}) where {T}
+function frequency(times::AbstractVector{T}, steps::AbstractRange) where {T}
     period = steps.step
+    # NOTE: Should the binning be different? Use Laska.arbitraryround instead?
+    accumulator = Dict{T, Int64}(t => 0 for t in steps)
+
+    filtered = LaskaCore.spikes_in_timerange(times, steps[begin], steps[end])
+
+    @inbounds for n in eachindex(filtered)
+        accumulator[LaskaCore.rounddown(filtered[n], period)] += 1
+    end
+
+    sorter = sortperm(collect(keys(accumulator)))
+
+    return collect(values(accumulator))[sorter]
+end
+
+# Version with StepRangeLen
+function frequency(times::AbstractVector{T}, steps::StepRangeLen) where {T}
+    period = Float64(steps.step)
     # NOTE: Should the binning be different? Use Laska.arbitraryround instead?
     accumulator = Dict{T, Int64}(t => 0 for t in steps)
 
