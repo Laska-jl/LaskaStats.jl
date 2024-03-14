@@ -99,7 +99,7 @@ function frequency(times::RelativeSpikeVector, steps::AbstractRange)
     out = Vector{Vector{Float64}}(undef, length(times))
     tmp = LaskaCore.spikes_in_timerange(times, steps[begin], steps[end])
     for n in eachindex(tmp)
-        out[n] = iszero(length(tmp[n])) ? zeros(T, length(steps)) :
+        out[n] = iszero(length(tmp[n])) ? zeros(Float64, length(steps)) :
                  frequency(tmp[n], steps) .* tconv
     end
     return out
@@ -107,16 +107,18 @@ end
 
 function frequency(times::RelativeSpikeVector,
         steps::StepRange{T}) where {T <: LaskaCore.TUnit}
-    rang = timetosamplerate(times, steps)
-    tconv = LaskaCore.samplerate(times) / steps.step
-    out = Vector{Vector{Float64}}(undef, length(times))
-    tmp = LaskaCore.spikes_in_timerange(times, steps[begin], steps[end])
-    for n in eachindex(tmp)
-        out[n] = iszero(length(tmp[n])) ? zeros(T, length(steps)) :
-                 frequency(tmp[n], steps) .* tconv
-    end
-    return out
+    lowerbound = timetosamplerate(times, steps[begin])
+    upperbound = timetosamplerate(times, steps[end])
+    period = timetosamplerate(times, steps.step)
+    frequency(times, period, lowerbound, upperbound)
 end
+
+# Frequency with begin, end and step
+function frequency(times::RelativeSpikeVector, period, t_lowerbound, t_upperbound)
+    tmp = LaskaCore.spikes_in_timerange(times, t_lowerbound, t_upperbound)
+    frequency(tmp, period)
+end
+
 # Frequency for SpikeVector
 
 function frequency(times::SpikeVector{T}, period::T) where {T}
