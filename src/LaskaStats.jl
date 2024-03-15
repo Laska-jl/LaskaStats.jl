@@ -14,4 +14,7 @@ export cv2, cv2mean, mad, relativefrequency, frequency, isi
 
 include("normalize/rangenormalize.jl")
 
+include("responselatency/gaussianconv.jl")
+include("summarize/spikedensity.jl")
+
 end

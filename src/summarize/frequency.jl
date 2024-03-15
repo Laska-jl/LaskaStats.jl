@@ -215,3 +215,16 @@ function frequency(times::AbstractVector{T}, steps::StepRangeLen) where {T}
 
     return collect(values(accumulator))[sorter]
 end
+
+# Frequency of Vector{Vector{T}}
+function frequency(times::Vector{Vector{T}}, period::P) where {T, U, P}
+    out = Vector{Vector{Int64}}(undef, length(times))
+    lowerbound = LaskaCore.rounddown(LaskaCore.minval(times), period)
+    upperbound = LaskaCore.rounddown(LaskaCore.maxval(times), period)
+    len = lowerbound:period:upperbound
+    for n in eachindex(out)
+        out[n] = iszero(length(times[n])) ? zeros(Float64, length(len)) :
+                 frequency(times[n], len)
+    end
+    return out
+end
