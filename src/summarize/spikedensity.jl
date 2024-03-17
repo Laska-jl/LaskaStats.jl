@@ -1,6 +1,5 @@
 #======================================
 Functions for obtaining spike-densities
-using Base: @propagate_inbounds
 ======================================#
 
 """
