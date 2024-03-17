@@ -4,8 +4,6 @@ If a "whole" Cluster or their (Relative-)SpikeVector is passed the output should
 If a normal <:AbstractVector is passed the output will be in spikes/bin.
 =========================================================================================#
 
-using LaskaCore: RelativeSpikeVector
-
 # TODO: Add methods with Unitful units for function using step(?)
 
 """
@@ -217,7 +215,7 @@ function frequency(times::AbstractVector{T}, steps::StepRangeLen) where {T}
 end
 
 # Frequency of Vector{Vector{T}}
-function frequency(times::Vector{Vector{T}}, period::P) where {T, U, P}
+function frequency(times::Vector{Vector{T}}, period::P) where {T, P}
     out = Vector{Vector{Int64}}(undef, length(times))
     lowerbound = LaskaCore.rounddown(LaskaCore.minval(times), period)
     upperbound = LaskaCore.rounddown(LaskaCore.maxval(times), period)
