@@ -1,7 +1,17 @@
 module LaskaStats
 
 using Reexport
-@reexport using LaskaCore
+using LaskaCore
+using LaskaCore:
+    RelativeSpikeVector,
+    SpikeVector,
+    AbstractSpikeVector,
+    Cluster,
+    RelativeCluster,
+    AbstractCluster,
+    AbstractExperiment,
+    PhyOutput,
+    RelativeSpikes
 using Statistics
 
 # Summarizing statistics
