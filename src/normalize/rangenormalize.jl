@@ -59,6 +59,13 @@ function rangenormalize!(v::AbstractVector{T},
     @. v = (v - min_v) / diffx
 end
 
+function derangenormalize!(v::AbstractVector{T},
+        premin::T,
+        premax::T) where {T <: AbstractFloat}
+    diffx = premax - premin
+    @. v = v * diffx + premin
+end
+
 @doc raw"""
     rangenormalize(v::AbstractVector{T}, min_v::T, max_v::T) where T
 
