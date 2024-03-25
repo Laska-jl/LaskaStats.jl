@@ -14,7 +14,6 @@ using LaskaCore:
     RelativeSpikes
 using Statistics
 using FFTW
-using MakieCore
 
 # Summarizing statistics
 include("summarize/cv2.jl")
