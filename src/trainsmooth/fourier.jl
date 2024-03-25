@@ -10,7 +10,7 @@ function fouriersmooth(V::AbstractVector{T}, σ, m) where {T}
     normcentered = vcat(normcentered, reverse(normcentered))
     plan = plan_fft(normcentered)
     ft = plan * normcentered
-    winf = gaussianfilter(length(V) / 2, σ, m)
+    winf = gaussianfilter(length(ft) / 2, σ, m)
     for i in eachindex(ft)
         ft[i] *= (1 - winf(i))
     end
