@@ -30,7 +30,7 @@ Will return the n:th bin which describes the number of spikes occuring between `
 
 """
 function frequency(cluster::Cluster, period::T) where {T}
-    times = spiketimes(cluster)
+    times = LaskaCore.spiketimes(cluster)
     return frequency(times, period)
 end
 

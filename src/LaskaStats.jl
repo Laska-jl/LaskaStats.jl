@@ -13,6 +13,8 @@ using LaskaCore:
     PhyOutput,
     RelativeSpikes
 using Statistics
+using FFTW
+using MakieCore
 
 # Summarizing statistics
 include("summarize/cv2.jl")
@@ -27,4 +29,6 @@ include("normalize/rangenormalize.jl")
 include("responselatency/gaussianconv.jl")
 include("summarize/spikedensity.jl")
 
+include("trainsmooth/filters.jl")
+include("trainsmooth/fourier.jl")
 end
