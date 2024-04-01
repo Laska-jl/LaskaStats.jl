@@ -35,6 +35,25 @@ function frequency(cluster::Cluster, period::T) where {T}
 end
 
 """
+    frequency(spikes::SpikeVector)
+
+Returns the average frequency in spikes/second for the time period first spiketime--last spiketime.
+"""
+function frequency(spikes::SpikeVector)
+    length(spikes) / ((spikes[end] - spikes[begin]) / LaskaCore.samplerate(spikes))
+end
+
+"""
+    frequency(spikes::SpikeVector)
+
+Returns the average frequency in spikes/second for the time period first spiketime--last spiketime.
+"""
+function frequency(cluster::Cluster)
+    spikes = spiketimes(cluster)
+    length(spikes) / (spikes[end] / LaskaCore.samplerate(spikes))
+end
+
+"""
     frequency(cluster::RelativeCluster, period::T) where {T <: Real}
 
 Returns a `Vector` of `Vector`s containing the frequency of the cluster in the form of spikes/period binned at each multiple of `period`.            

@@ -13,7 +13,7 @@ function mad(cluster::T) where {T <: AbstractCluster}
     return mad(spiketimes(cluster))
 end
 
-function mad(vec::Vector{T}) where {T <: Real}
+function mad(vec::AbstractVector{T}) where {T}
     isis = Float64.(isi(vec))
     medianisi = median(isis)
     @inbounds @views for i in eachindex(isis)
