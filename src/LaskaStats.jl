@@ -23,13 +23,16 @@ include("summarize/frequency.jl")
 include("summarize/relativefrequency.jl")
 include("summarize/isi.jl")
 include("summarize/fanofactor.jl")
+include("summarize/acg.jl")
 export cv2, cv2mean, mad, relativefrequency, frequency, isi
 
 include("normalize/rangenormalize.jl")
+include("normalize/standardize.jl")
 
 include("responselatency/gaussianconv.jl")
 include("summarize/spikedensity.jl")
 
 include("trainsmooth/filters.jl")
 include("trainsmooth/fourier.jl")
+
 end
