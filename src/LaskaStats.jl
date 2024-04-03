@@ -35,4 +35,6 @@ include("summarize/spikedensity.jl")
 include("trainsmooth/filters.jl")
 include("trainsmooth/fourier.jl")
 
+include("corr/acg.jl")
+
 end

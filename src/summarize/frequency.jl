@@ -5,6 +5,7 @@ If a normal <:AbstractVector is passed the output will be in spikes/bin.
 =========================================================================================#
 
 # TODO: Add methods with Unitful units for function using step(?)
+# TODO: Change the names of the "frequency" functions that actually computes some for of psth-isch thing
 
 """
 
@@ -242,6 +243,49 @@ function frequency(times::Vector{Vector{T}}, period::P) where {T, P}
     for n in eachindex(out)
         out[n] = iszero(length(times[n])) ? zeros(Float64, length(len)) :
                  frequency(times[n], len)
+    end
+    return out
+end
+
+# TODO: Rename this
+"""
+    discretize(v::RelativeSpikeVector, min_t, max_t)
+    discretize(::Type{T}, v::RelativeSpikeVector, min_t, max_t) where {T}
+
+Returns a `Vector{Vector{Bool}}` where each inner vector is of length `max_t - min_t`.
+Each entry of the inner vectors is `1`/`true` if there is a spike at the time matching the index of the entry. Index 1 represents `min_t` while the last index represents `max_t`.
+
+If another type of elements in the inner `Vector` is desired (such as Int), one may pass this type as the first argument.
+
+"""
+function discretize(v::RelativeSpikeVector, min_t, max_t)
+    index = abs(min_t) + 1
+    out = [zeros(Bool, max_t - min_t) for _ in eachindex(v)]
+    if max_t < LaskaCore.maxval(v) || LaskaCore.minval(v) < min_t
+        spikes = LaskaCore.spikes_in_timerange(v, min_t, max_t)
+    else
+        spikes = v
+    end
+    for i in eachindex(out)
+        @simd for j in eachindex(spikes[i])
+            out[i][spikes[i][j] + index] = 1
+        end
+    end
+    return out
+end
+
+function discretize(::Type{T}, v::RelativeSpikeVector, min_t, max_t) where {T}
+    index = abs(min_t) + 1
+    out = [zeros(T, max_t - min_t) for _ in eachindex(v)]
+    if max_t < LaskaCore.maxval(v) || LaskaCore.minval(v) < min_t
+        spikes = LaskaCore.spikes_in_timerange(v, min_t, max_t)
+    else
+        spikes = v
+    end
+    for i in eachindex(out)
+        @simd for j in eachindex(spikes[i])
+            out[i][spikes[i][j] + index] = oneunit(T)
+        end
     end
     return out
 end
