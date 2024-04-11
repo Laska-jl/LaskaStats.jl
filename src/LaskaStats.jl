@@ -37,4 +37,6 @@ include("trainsmooth/fourier.jl")
 
 include("corr/acg.jl")
 
+include("similarity/LF.jl")
+
 end

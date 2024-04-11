@@ -1,7 +1,7 @@
 name = "LaskaStats"
 uuid = "de767ba9-e829-4e7c-bf82-062dc00bf36c"
 authors = ["Elias Sjölin", "<elias.sjolin@gmail.com>"]
-version = "0.1.11"
+version = "0.1.12"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
@@ -12,6 +12,12 @@ Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+
+[weakdeps]
+Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
+
+[extensions]
+BayesianSmoothing = "Turing"
 
 [compat]
 Revise = "3"
