@@ -1,7 +1,7 @@
 name = "LaskaStats"
 uuid = "de767ba9-e829-4e7c-bf82-062dc00bf36c"
 authors = ["Elias Sjölin", "<elias.sjolin@gmail.com>"]
-version = "0.1.12"
+version = "0.1.13"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
@@ -17,7 +17,7 @@ Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
 
 [extensions]
-BayesianSmoothing = "Turing"
+BayesianSmoothingExt = "Turing"
 
 [compat]
 Revise = "3"

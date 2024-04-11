@@ -39,4 +39,8 @@ include("corr/acg.jl")
 
 include("similarity/LF.jl")
 
+function test()
+    println("bas")
+end
+
 end
