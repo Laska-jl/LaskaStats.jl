@@ -16,6 +16,8 @@ using Statistics
 using FFTW
 using Unitful
 using DataStructures
+using DSP
+
 
 # Summarizing statistics
 include("summarize/cv2.jl")

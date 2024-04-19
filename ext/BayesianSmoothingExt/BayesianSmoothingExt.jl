@@ -4,9 +4,8 @@ using LaskaCore
 using LaskaStats
 using Turing
 
-
-function LaskaStats.test(x::String)
-    println("hej")
+function bayesiansmooth(v::AbstractVector)
+	
 end
 
 end

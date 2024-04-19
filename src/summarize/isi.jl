@@ -60,7 +60,7 @@ function meanisi!(exp::AbstractExperiment)
     exp.info.mean_isi = meanisi.(spiketimes.(clusters))
 end
 
-function meanisi(spikes::Vector{T}) where {T}
+function meanisi(spikes::AbstractVector{T}) where {T}
     out = zero(T)
     len = length(spikes) - 1
     @inbounds @views for i in 1:len

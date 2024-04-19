@@ -7,7 +7,7 @@ Spike train smoothing using an FFT
 
 Smooth an `AbstractVector` by applying a DFT to it and filtering the higher frequencies using an inverted gaussian filter.
 
-The filter itself is calculated as:'
+The filter itself is calculated as:
 
 ```math
 f(x) = 1 - e^{\\left (  \\frac{(x - x_{mean})^{2}}{2\\sigma^{2}}\\right )^m}
