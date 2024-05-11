@@ -6,13 +6,46 @@ If a normal <:AbstractVector is passed the output will be in spikes/bin.
 
 # TODO: Add methods with Unitful units for function using step(?)
 # TODO: Change the names of the "frequency" functions that actually computes some for of psth-isch thing
+# TODO: Clean up these docs
+"""
+    frequency(spiketimes, period)
+
+
+Returns a Vector containing the frequency of `spiketimes` in the form of spikes/second binned at each multiple of `period`.            
+Spiketimes are binned to the nearest *smaller* multiple of `period`. Ie a spike happening at time = 59999 will be in the 30000 bin when period = 30000.
+
+Spiketimes may be provided in the form of:
+- An `AbstractVector`
+- A `SpikeVector`
+- A `RelativeSpikeVector`
+- A `Cluster`
+
+
+
+# Example
+
+For a cluster sampled at 30 000Hz...
+```julia
+LaskaStats.frequency(spikes, 30000)
+```
+...will return spikes/second.
+
+Indexing into the result as:        
+```julia
+result[n]
+```
+Will return the spikes/s between `time = period * n` and `time < period * n+1`.
+
+
+"""
+function frequency end
 
 """
 
     frequency(cluster::Cluster, period::T) where {T<:Real}
 
-Returns a Vector containing the frequency of the cluster in the form of spikes/period binned at each multiple of `period`.            
-Spiketimes are binned to the next *largest* multiple of `period`. Ie a spike happening at time = 30001 will be in the 60000 bin.
+Returns a Vector containing the frequency of the cluster in the form of spikes/second binned at each multiple of `period`.            
+Spiketimes are binned to the nearest *smaller* multiple of `period`. Ie a spike happening at time = 59999 will be in the 30000 bin when period = 30000.
 
 # Example
 
@@ -26,7 +59,7 @@ Indexing into the result as:
 ```julia
 result[n]
 ```
-Will return the n:th bin which describes the number of spikes occuring between `period * n` and `period * n-1`.
+Will return the spikes/s between `time = period * n` and `time < period * n+1`.
 
 
 """
@@ -34,6 +67,8 @@ function frequency(cluster::Cluster, period::T) where {T}
     times = LaskaCore.spiketimes(cluster)
     return frequency(times, period)
 end
+
+# Frequency for SpikeVector
 
 """
     frequency(spikes::SpikeVector)
@@ -45,7 +80,99 @@ function frequency(spikes::SpikeVector)
 end
 
 """
-    frequency(spikes::SpikeVector)
+    frequency(times::SpikeVector{T}, period::T) where {T}
+
+Returns a Vector containing the frequency of the `SpikeVector` in the form of spikes/second binned at each multiple of `period`.            
+Spiketimes are binned to the nearest *smaller* multiple of `period`. Ie a spike happening at time = 59999 will be in the 30000 bin when period = 30000.
+
+# Example
+
+For a cluster sampled at 30 000Hz...
+```julia
+LaskaStats.frequency(spikes, 30000)
+```
+...will return spikes/second.
+
+Indexing into the result as:        
+```julia
+result[n]
+```
+Will return the spikes/s between `time = period * n` and `time < period * n+1`.
+
+
+"""
+function frequency(times::SpikeVector{T}, period::T) where {T}
+    # The number by which to multiply each bin to convert it to Hz
+    tconv = LaskaCore.samplerate(times) / period
+
+    # NOTE: Should the binning be different? Use Laska.arbitraryround instead?
+    lowerbound = LaskaCore.rounddown(minimum(times, init = 0), period)
+    upperbound = LaskaCore.rounddown(maximum(times, init = 0), period)
+    accumulator = Dict{T, Float64}(t => 0.0 for t in lowerbound:period:upperbound)
+
+    @inbounds for n in eachindex(times)
+        accumulator[LaskaCore.rounddown(times[n], period)] += 1.0
+    end
+
+    sorter = sortperm(collect(keys(accumulator)))
+    out = collect(values(accumulator))[sorter]
+    for i in eachindex(out)
+        out[i] *= tconv
+    end
+    return out
+end
+
+# Version for SpikeVector with Unitful period
+"""
+    frequency(times::SpikeVector{T, U},
+        period::TimeUnit) where {T, U, TimeUnit <: LaskaCore.TUnit}
+
+
+Returns a Vector containing the frequency of the `SpikeVector` in the form of spikes/second binned at each multiple of `period`.            
+Spiketimes are binned to the closest *smaller* multiple of `period`. Ie a spike happening at time = 2.99s will be in the 2s bin when period = `1u"s"`. 
+
+`period` in this method should be a `Unitful.jl`-based unit of time.
+
+# Example
+
+```julia
+LaskaStats.frequency(spikes, 1u"s")
+```
+...will return spikes/second.
+
+Indexing into the result as:        
+```julia
+result[n]
+```
+Will return the spikes/s between `time = period * n` and `time < period * n+1`.
+
+
+"""
+function frequency(times::SpikeVector{T, U},
+        period::TimeUnit) where {T, U, TimeUnit <: LaskaCore.TUnit}
+    # The number by which to multiply each bin to convert it to Hz
+    periodconv = LaskaCore.timetosamplerate(times, period)
+    tconv = LaskaCore.samplerate(times) / periodconv
+
+    # NOTE: Should the binning be different? Use Laska.arbitraryround instead?
+    lowerbound = LaskaCore.rounddown(minimum(times, init = 0), periodconv)
+    upperbound = LaskaCore.rounddown(maximum(times, init = 0), periodconv)
+    accumulator = Dict{T, Float64}(t => 0.0 for t in lowerbound:periodconv:upperbound)
+
+    @inbounds for n in eachindex(times)
+        accumulator[LaskaCore.rounddown(times[n], periodconv)] += 1.0
+    end
+
+    sorter = sortperm(collect(keys(accumulator)))
+    out = collect(values(accumulator))[sorter]
+    @inbounds for i in eachindex(out)
+        out[i] *= tconv
+    end
+    return out
+end
+
+"""
+    frequency(cluster::Cluster)
 
 Returns the average frequency in spikes/second for the time period first spiketime--last spiketime.
 """
@@ -57,7 +184,7 @@ end
 """
     frequency(cluster::RelativeCluster, period::T) where {T <: Real}
 
-Returns a `Vector` of `Vector`s containing the frequency of the cluster in the form of spikes/period binned at each multiple of `period`.            
+Returns a `Vector` of `Vector`s containing the frequency of the cluster in the form of spikes/second binned at each multiple of `period`.            
 Spiketimes are binned to the closest *smaller* multiple of `period`. Ie a spike happening at time = 59999 will be in the 30000 bin.
 
 # Example
@@ -74,7 +201,7 @@ Indexing into the result as:
 result[i][n]
 ```
 
-Will return the n:th bin of the i:th trigger event which describes the number of spikes occuring between `period * n` and `period * n-1`.
+Will return the n:th bin of the i:th trigger event which describes the number of spikes occuring between `time = period * n` and `time < period * n+1`.
 
 """
 function frequency(cluster::RelativeCluster, period::T) where {T}
@@ -135,53 +262,6 @@ end
 function frequency(times::RelativeSpikeVector, period, t_lowerbound, t_upperbound)
     tmp = LaskaCore.spikes_in_timerange(times, t_lowerbound, t_upperbound)
     frequency(tmp, period)
-end
-
-# Frequency for SpikeVector
-
-function frequency(times::SpikeVector{T}, period::T) where {T}
-    # The number by which to multiply each bin to convert it to Hz
-    tconv = LaskaCore.samplerate(times) / period
-
-    # NOTE: Should the binning be different? Use Laska.arbitraryround instead?
-    lowerbound = LaskaCore.rounddown(minimum(times, init = 0), period)
-    upperbound = LaskaCore.rounddown(maximum(times, init = 0), period)
-    accumulator = Dict{T, Float64}(t => 0.0 for t in lowerbound:period:upperbound)
-
-    @inbounds for n in eachindex(times)
-        accumulator[LaskaCore.rounddown(times[n], period)] += 1.0
-    end
-
-    sorter = sortperm(collect(keys(accumulator)))
-    out = collect(values(accumulator))[sorter]
-    for i in eachindex(out)
-        out[i] *= tconv
-    end
-    return out
-end
-
-# Version for SpikeVector with Unitful period
-function frequency(times::SpikeVector{T, U},
-        period::TimeUnit) where {T, U, TimeUnit <: LaskaCore.TUnit}
-    # The number by which to multiply each bin to convert it to Hz
-    periodconv = LaskaCore.timetosamplerate(times, period)
-    tconv = LaskaCore.samplerate(times) / periodconv
-
-    # NOTE: Should the binning be different? Use Laska.arbitraryround instead?
-    lowerbound = LaskaCore.rounddown(minimum(times, init = 0), periodconv)
-    upperbound = LaskaCore.rounddown(maximum(times, init = 0), periodconv)
-    accumulator = Dict{T, Float64}(t => 0.0 for t in lowerbound:periodconv:upperbound)
-
-    @inbounds for n in eachindex(times)
-        accumulator[LaskaCore.rounddown(times[n], periodconv)] += 1.0
-    end
-
-    sorter = sortperm(collect(keys(accumulator)))
-    out = collect(values(accumulator))[sorter]
-    @inbounds for i in eachindex(out)
-        out[i] *= tconv
-    end
-    return out
 end
 
 # Versions without units/samplerates, just plain old binnin'
