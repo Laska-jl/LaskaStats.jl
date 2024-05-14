@@ -25,6 +25,7 @@ using LinearAlgebra
 import SpecialFunctions: loggamma
 using Optimisers
 using ForwardDiff
+using Turing
 
 # Summarizing statistics
 include("summarize/cv2.jl")

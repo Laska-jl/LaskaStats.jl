@@ -144,22 +144,26 @@ function kl(o, prior_parameters = [1.0, 1.0, 0.0, 1.0], n_samples = 1000)
     end
 end
 
-function omega(o::OmegaEstimatorGaussian, omega0, lr = 0.01,
-        niter = 1000, prior_paramters = [1.0, 1.0, 0.0, 1.0], n_samples = 1000)
-    param = [omega0]
-    optimizer = Optimisers.setup(Descent(lr), param)
-    costs = Vector{Float64}(undef, niter)
-    params = Vector{Float64}(undef, niter)
+# function omega(o::OmegaEstimatorGaussian, omega0, lr = 0.01,
+#         niter = 1000, prior_paramters = [1.0, 1.0, 0.0, 1.0], n_samples = 1000)
+#     param = [omega0]
+#     optimizer = Optimisers.setup(Descent(lr), param)
+#     costs = Vector{Float64}(undef, niter)
+#     params = Vector{Float64}(undef, niter)
+#
+#     klgrad = kl(o, prior_paramters, n_samples)
+#
+#     for i in 1:niter
+#         costs[i] = klgrad(param)
+#         grads = ForwardDiff.gradient(klgrad, param)
+#         optimizer, param, = Optimisers.update!(optimizer, param, grads)
+#         params[i] = param
+#     end
+#     return params, costs
+# end
 
-    klgrad = kl(o, prior_paramters, n_samples)
-
-    for i in 1:niter
-        costs[i] = klgrad(param)
-        grads = ForwardDiff.gradient(klgrad, param)
-        optimizer, param, = Optimisers.update!(optimizer, param, grads)
-        params[i] = param
-    end
-    return params, costs
+@model function omega(o::OmegaEstimatorGaussian, omega0, prior_parameters,
+        lr = 0.01, niter = 1000, n_samples = 1000)
 end
 
 # https://fluxml.ai/Optimisers.jl/stable/api/#Model-Interface
