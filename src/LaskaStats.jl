@@ -24,7 +24,7 @@ using Distributions
 using LinearAlgebra
 import SpecialFunctions: loggamma
 using Optimisers
-using ForwardDiff
+using Zygote
 using Turing
 
 # Summarizing statistics

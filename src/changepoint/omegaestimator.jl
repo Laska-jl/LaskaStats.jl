@@ -74,7 +74,7 @@ function vx(
 
     v2 = transpose(grad_r(o, x)) * div_mm
 
-    v3 = tr(m(x) * transpose(m(x)) * hess_r(o, x))
+    v3 = [(m(x) * transpose(m(x)) * hess_r(o, x))[1]]
     v3 = reshape(v3, (p, 1))
 
     return v1 .+ v2 .+ v3
@@ -85,7 +85,7 @@ function var_dsm_full(o::OmegaEstimatorGaussian, b)
 end
 
 # var_dsm_full with explicit parameters
-function var_dsm_full(o::Type{OmegaEstimatorGaussian}, Sigma0Inv, mu0, n, v, A, b)
+function var_dsm_full(Sigma0Inv, n, A, b)
     inv(Sigma0Inv .+ (2 .* b .* n .* A))
 end
 
@@ -93,9 +93,9 @@ function mu_dsm_full(o::OmegaEstimatorGaussian, b)
     var_dsm_full(o, b) * (o.Sigma0Inv * o.mu0 .- b .* o.n .* o.v)
 end
 
-# var_dsm_full with explicit parameters
-function mu_dsm_full(o::Type{OmegaEstimatorGaussian}, Sigma0Inv, mu0, n, v, b)
-    var_dsm_full(o, b) * (Sigma0Inv * mu0 .- b .* n .* v)
+# mu_dsm_full with explicit parameters
+function mu_dsm_full(Sigma0Inv, mu0, n, v, A, b)
+    var_dsm_full(Sigma0Inv, n, A, b) * (Sigma0Inv * mu0 .- b .* n .* v)
 end
 
 function log_norminvgamma_posterior(o::OmegaEstimatorGaussian, mu, sigma2, prior_parameters)
@@ -106,64 +106,81 @@ function log_norminvgamma_posterior(o::OmegaEstimatorGaussian, mu, sigma2, prior
 
     beta = beta +
            0.5 * sum(
-        (o.data .- sample_mean)^2 +
+        (o.data .- sample_mean) .^ 2 .+
         o.n * k * (sample_mean - u)^2 / (k + o.n)
     )
     k = k + o.n
 
-    t1 = 0.5 * log(k) - log(2 * π * sigma2)
+    t1 = 0.5 * log(k) .- log.(2 * π * sigma2)
     t2 = alpha * log(beta) - loggamma(alpha)
-    t3 = -(alpha + 1) * log(sigma2)
-    t4 = -(2 * beta + k * (mu - u)^2) / (2 * sigma2)
+    t3 = -(alpha + 1) .* log.(sigma2)
+    t4 = -(2 .* beta .+ k .* (mu .- u) .^ 2) ./ (2 .* sigma2)
 
-    return t1 + t2 + t3 + t4
+    return @. t1 + t2 + t3 + t4
 end
 
 # Returns a single variable function for calculating omega gradient
-function kl(o, prior_parameters = [1.0, 1.0, 0.0, 1.0], n_samples = 1000)
-    function (omega)
-        mu = mu_dsm_full(typeof(o), o.Sigma0Inv, o.mu0, o.n, o.v, omega)
-        var = var_dsm_full(typeof(o), o.Sigma0Inv, o.mu0, o.n, o.v, o.A, omega)
+function kl(o, omega, prior_parameters = [1.0, 1.0, 0.0, 1.0], n_samples = 1000)
+    var = var_dsm_full(o, omega)
+    mu = mu_dsm_full(o, omega)
 
-        q1 = Normal(mu[1], sqrt(var[1, 1]))
-        q2 = truncated(Normal(mu[2], sqrt(var[2, 2])), 0.0, 1.0e10)
+    q1 = Normal(mu[1], sqrt(var[1, 1]))
+    q2 = truncated(Normal(mu[2], sqrt(var[2, 2])), 0.0, 1.0e10)
 
-        sample_set_1 = rand(q1, n_samples)
-        sample_set_2 = rand(q2, n_samples)
+    sample_set_1 = rand(q1, n_samples)
+    sample_set_2 = rand(q2, n_samples)
 
-        q1_log = logpdf.(q1, sample_set_1)
-        q2_log = logpdf.(q2, sample_set_2)
-        posterior = log_norminvgamma_posterior(
-            o,
-            sample_set_1 ./ sample_set_2,
-            1 ./ sample_set_2,
-            prior_parameters
-        )
+    q1_log = logpdf.(q1, sample_set_1)
+    q2_log = logpdf.(q2, sample_set_2)
+    posterior = log_norminvgamma_posterior(
+        o,
+        sample_set_1 ./ sample_set_2,
+        1 ./ sample_set_2,
+        prior_parameters
+    )
 
-        return mean(q1_log .+ q2_log .- posterior)
+    return mean(@. q1_log + q2_log - posterior)
+end
+
+function estimateomega(o::OmegaEstimatorGaussian, omega0, lr = 0.01,
+        niter = 1000, prior_parameters = [1.0, 1.0, 0.0, 1.0], n_samples = 1000)
+    param = [omega0]
+    optimizer = Optimisers.setup(Descent(lr), param)
+    costs = Vector{Float64}(undef, niter)
+    params = Vector{Float64}(undef, niter)
+
+    klfunc = x -> kl(o, x, prior_parameters, n_samples)
+
+    for i in 1:niter
+        costs[i] = klfunc(param)
+        grads = Zygote.gradient(klfunc, param)[1]
+        optimizer, param, = Optimisers.update!(optimizer, param, grads)
+        params[i] = param[1]
     end
+    return params, costs
 end
 
-# function omega(o::OmegaEstimatorGaussian, omega0, lr = 0.01,
-#         niter = 1000, prior_paramters = [1.0, 1.0, 0.0, 1.0], n_samples = 1000)
-#     param = [omega0]
-#     optimizer = Optimisers.setup(Descent(lr), param)
-#     costs = Vector{Float64}(undef, niter)
-#     params = Vector{Float64}(undef, niter)
+# @model function omega(o::OmegaEstimatorGaussian, omega, prior_parameters,
+#         lr = 0.01, niter = 1000, n_samples = 1000)
+#     mu = mu_dsm_full(o, omega)
+#     var = var_dsm_full(o, omega)
 #
-#     klgrad = kl(o, prior_paramters, n_samples)
+#     q1 = Normal(mu[1], var[1, 1])
+#     q2 = truncated(Normal(mu[2], sqrt(var[2, 2])), 0.0, 1.0e10)
 #
-#     for i in 1:niter
-#         costs[i] = klgrad(param)
-#         grads = ForwardDiff.gradient(klgrad, param)
-#         optimizer, param, = Optimisers.update!(optimizer, param, grads)
-#         params[i] = param
-#     end
-#     return params, costs
+#     sample_set_1 ~ filldist(q1, n_samples)
+#     sample_set_2 ~ filldist(q2, n_samples)
+#
+#     q1_log = logpdf.(q1, sample_set_1)
+#     q2_log = logpdf.(q2, sample_set_2)
+#
+#     posterior = log_norminvgamma_posterior(
+#         o,
+#         sample_set_1 ./ sample_set_2,
+#         1 ./ sample_set_2,
+#         prior_parameters
+#     )
+#     return posterior
 # end
-
-@model function omega(o::OmegaEstimatorGaussian, omega0, prior_parameters,
-        lr = 0.01, niter = 1000, n_samples = 1000)
-end
 
 # https://fluxml.ai/Optimisers.jl/stable/api/#Model-Interface
