@@ -1,5 +1,7 @@
 
-struct ConstantHazard{T}
+abstract type AbstractHazard end
+
+struct ConstantHazard{T} <: AbstractHazard
     lambda::T
 end
 

@@ -11,7 +11,7 @@ Calculate relative frequency of a `RelativeCluster`/collection of spikes from a 
     relativefrequency(vec::Vector{Vector{T}}, steps::StepRange{T,T}) where {T<:Real}
 
 A baseline is calculated for *each* trigger session. It is based on the mean number of 
-spikes/period in bins in before time=0.
+spikes/bins in bins before time=0.
 
 A custom `StepRange` may be provided instead of `period`. In this case, the period will be the `step` of the `StepRange`
 

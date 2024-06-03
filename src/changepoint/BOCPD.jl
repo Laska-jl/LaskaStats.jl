@@ -1,15 +1,18 @@
 # https://arxiv.org/pdf/2302.04759
 # https://github.com/maltamiranomontero/DSM-bocd/tree/main
 
-function bocpd(data, hazard, m, grad_m, model, K = 50)
+function bocpd(data, hazard, m, grad_m, model, K = 50; verbose = false)
     dlen = length(data)
-    log_R = fill(Float64, -Inf, (dlen, dlen))
+    log_R = fill(-Inf, (dlen + 1, dlen + 1))
     log_R[1, 1] = 0.0
     log_message = 0.0
-    max_indices = [1]
+    max_indices::Vector{Int64} = [1]
 
     for t in 2:dlen
-        haz = hazard(collect(1:min(t, K)))
+        if verbose && t % 100 == 0
+            println("processing observation #$(t)")
+        end
+        haz = hazard(collect(1:(min(t, K) - 1)))
         log_haz = log.(haz)
         log_1mhaz = log.(1 .- haz)
 
@@ -23,15 +26,15 @@ function bocpd(data, hazard, m, grad_m, model, K = 50)
         log_cp_prob = log(sum(exp.(logpredprob .+ log_message .+ log_haz)))
 
         # Calculate evidence
-        new_log_joint = fill(t + 1, -Inf)
+        new_log_joint = fill(-Inf, t)
         new_log_joint[1] = log_cp_prob
         new_log_joint[max_indices .+ 1] = log_growth_probs
 
         # Determine run length distribution
-        max_indices = sortperm(-new_log_joint)[begin:K]
+        max_indices = sortperm(-new_log_joint)[begin:min(length(new_log_joint), K - 1)]
 
-        @views log_R[t:(t + 1), t] = new_log_joint
-        @views log_R[t:(t + 1), t] -= log(sum(exp.(new_log_joint)))
+        log_R[begin:(t), t] = new_log_joint
+        log_R[begin:(t), t] .-= log(sum(exp.(new_log_joint)))
 
         # Update model
         update_params!(model, m, grad_m, t, data)

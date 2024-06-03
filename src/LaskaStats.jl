@@ -22,10 +22,11 @@ using DataStructures
 using DSP
 using Distributions
 using LinearAlgebra
-import SpecialFunctions: loggamma
 using Optimisers
 using Zygote
 using Turing
+import SpecialFunctions: loggamma
+using TruncatedMVN
 
 # Summarizing statistics
 include("summarize/cv2.jl")
@@ -50,7 +51,10 @@ include("corr/acg.jl")
 include("similarity/LF.jl")
 
 include("changepoint/BOCPD.jl")
-include("changepoint/DSMmodels.jl")
 include("changepoint/hazard.jl")
 include("changepoint/omegaestimator.jl")
+include("changepoint/bocpdutils.jl")
+include("changepoint/DSMmodels.jl")
+include("changepoint/models/DSMExponentialGaussian.jl")
+include("changepoint/models/DSMGaussian.jl")
 end

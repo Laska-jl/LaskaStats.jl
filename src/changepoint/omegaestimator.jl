@@ -53,7 +53,7 @@ function grad_r(::Union{OmegaEstimatorGaussian, Type{OmegaEstimatorGaussian}}, x
 end
 
 function hess_r(::Union{OmegaEstimatorGaussian, Type{OmegaEstimatorGaussian}}, x)
-    reshape([0.0, -1.0], (1, 2))
+    reshape([0.0, -1.0], (1, 1, 2))
 end
 
 function grad_b(::Union{OmegaEstimatorGaussian, Type{OmegaEstimatorGaussian}}, x)
@@ -73,9 +73,10 @@ function vx(
     div_mm = reshape(div_mm, (d, 1))
 
     v2 = transpose(grad_r(o, x)) * div_mm
-
-    v3 = [(m(x) * transpose(m(x)) * hess_r(o, x))[1]]
+    hess = hess_r(o, x)
+    v3 = [(m(x) * transpose(m(x)) * hess[:, :, i])[1] for i in axes(hess, 3)]
     v3 = reshape(v3, (p, 1))
+    @show v3
 
     return v1 .+ v2 .+ v3
 end
@@ -119,7 +120,6 @@ function log_norminvgamma_posterior(o::OmegaEstimatorGaussian, mu, sigma2, prior
     return @. t1 + t2 + t3 + t4
 end
 
-# Returns a single variable function for calculating omega gradient
 function kl(o, omega, prior_parameters = [1.0, 1.0, 0.0, 1.0], n_samples = 1000)
     var = var_dsm_full(o, omega)
     mu = mu_dsm_full(o, omega)
@@ -142,7 +142,7 @@ function kl(o, omega, prior_parameters = [1.0, 1.0, 0.0, 1.0], n_samples = 1000)
     return mean(@. q1_log + q2_log - posterior)
 end
 
-function estimateomega(o::OmegaEstimatorGaussian, omega0, lr = 0.01,
+function estimateomega(o::OmegaEstimatorGaussian, omega0; lr = 0.01,
         niter = 1000, prior_parameters = [1.0, 1.0, 0.0, 1.0], n_samples = 1000)
     param = [omega0]
     optimizer = Optimisers.setup(Descent(lr), param)
