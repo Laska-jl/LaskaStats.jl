@@ -1,23 +1,33 @@
+"""
+Module containing functionality for calculating statistical measures of spike trains, clusters etc.
+"""
 module LaskaStats
 
 using Reexport
 using LaskaCore
 using LaskaCore:
-    RelativeSpikeVector,
-    SpikeVector,
-    AbstractSpikeVector,
-    Cluster,
-    RelativeCluster,
-    AbstractCluster,
-    AbstractExperiment,
-    PhyOutput,
-    RelativeSpikes
+                 RelativeSpikeVector,
+                 SpikeVector,
+                 AbstractSpikeVector,
+                 Cluster,
+                 RelativeCluster,
+                 AbstractCluster,
+                 AbstractExperiment,
+                 PhyOutput,
+                 RelativeSpikes
 using Statistics
 using FFTW
 using Unitful
 using DataStructures
 using DSP
-
+using Distributions
+using LinearAlgebra
+using Optimisers
+using Zygote
+using Turing
+import SpecialFunctions: loggamma
+using TruncatedMVN
+using Random
 
 # Summarizing statistics
 include("summarize/cv2.jl")
@@ -41,8 +51,13 @@ include("corr/acg.jl")
 
 include("similarity/LF.jl")
 
-function test()
-    println("bas")
-end
+include("changepoint/utils/functions.jl")
+include("changepoint/hazard.jl")
+include("changepoint/DSMmodels.jl")
+include("changepoint/models/DSMExponentialGaussian.jl")
+include("changepoint/models/DSMGaussian.jl")
+include("changepoint/bocpdutils.jl")
+include("changepoint/omegaestimator.jl")
+include("changepoint/BOCPD.jl")
 
 end
