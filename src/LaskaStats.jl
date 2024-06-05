@@ -50,7 +50,6 @@ include("corr/acg.jl")
 
 include("similarity/LF.jl")
 
-include("changepoint/utilities/functions.jl")
 include("changepoint/BOCPD.jl")
 include("changepoint/hazard.jl")
 include("changepoint/omegaestimator.jl")
@@ -58,4 +57,5 @@ include("changepoint/bocpdutils.jl")
 include("changepoint/DSMmodels.jl")
 include("changepoint/models/DSMExponentialGaussian.jl")
 include("changepoint/models/DSMGaussian.jl")
+
 end
