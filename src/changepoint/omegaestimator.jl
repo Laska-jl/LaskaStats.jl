@@ -1,6 +1,3 @@
-#TODO: Replace inv with transpose
-#TODO: fix the constructor
-#TODO: Figure out the dimensions of the hess_r
 
 struct OmegaEstimatorGaussian{
     T <: AbstractArray{<:Number}, U <: Integer, V <: Integer, X <: Integer,
@@ -21,13 +18,11 @@ end
 function NewOmegaEstimatorGaussian(data::T,
         mu0::Y,
         Sigma0::Z,
-        p,
-        m,
-        grad_m) where {
-        T <: AbstractArray{<:Number}, U <: Integer, V <: Integer, X <: Integer,
-        Y <: AbstractArray{<:Number}, Z <: AbstractArray{<:Number},
-        S <: Union{<:Number, <:AbstractArray{<:Number}},
-        R <: Union{<:Number, <:AbstractArray{<:Number}}}
+        p::Integer,
+        m::Function,
+        grad_m::Function) where {
+        T <: AbstractArray{<:Number},
+        Y <: AbstractArray{<:Number}, Z <: AbstractArray{<:Number}}
     n = size(data)[1]
     d = 1
     Sigma0Inv = collect(inv(Sigma0))
@@ -82,7 +77,7 @@ function vx(
 end
 
 function var_dsm_full(o::OmegaEstimatorGaussian, b)
-    inv(o.Sigma0Inv .+ (2 .* b .* o.n .* o.A))
+    inv(@.(o.Sigma0Inv+(2 * b * o.n * o.A)))
 end
 
 # var_dsm_full with explicit parameters
@@ -106,13 +101,13 @@ function log_norminvgamma_posterior(o::OmegaEstimatorGaussian, mu, sigma2, prior
     alpha = alpha + o.n / 2
 
     beta = beta +
-           0.5 * sum(
-        (o.data .- sample_mean) .^ 2 .+
-        o.n * k * (sample_mean - u)^2 / (k + o.n)
+           0.5 * (sum(
+        (o.data .- sample_mean) .^ 2) .+
+            (o.n * k * (sample_mean - u))^2 / (k + o.n)
     )
     k = k + o.n
 
-    t1 = 0.5 * log(k) .- log.(2 * π * sigma2)
+    t1 = 0.5 * (log(k) .- log.(2 * π * sigma2))
     t2 = alpha * log(beta) - loggamma(alpha)
     t3 = -(alpha + 1) .* log.(sigma2)
     t4 = -(2 .* beta .+ k .* (mu .- u) .^ 2) ./ (2 .* sigma2)
@@ -120,7 +115,8 @@ function log_norminvgamma_posterior(o::OmegaEstimatorGaussian, mu, sigma2, prior
     return @. t1 + t2 + t3 + t4
 end
 
-function kl(o, omega, prior_parameters = [1.0, 1.0, 0.0, 1.0], n_samples = 1000)
+function kl(o, omega, prior_parameters = [1.0, 1.0, 0.0, 1.0],
+        n_samples = 1000)
     var = var_dsm_full(o, omega)
     mu = mu_dsm_full(o, omega)
 
@@ -139,13 +135,13 @@ function kl(o, omega, prior_parameters = [1.0, 1.0, 0.0, 1.0], n_samples = 1000)
         prior_parameters
     )
 
-    return mean(@. q1_log + q2_log - posterior)
+    return mean(@.(q1_log + q2_log-posterior))
 end
 
 function estimateomega(o::OmegaEstimatorGaussian, omega0; lr = 0.01,
         niter = 1000, prior_parameters = [1.0, 1.0, 0.0, 1.0], n_samples = 1000)
     param = [omega0]
-    optimizer = Optimisers.setup(Descent(lr), param)
+    optimizer = Optimisers.setup(Adam(lr), param)
     costs = Vector{Float64}(undef, niter)
     params = Vector{Float64}(undef, niter)
 
