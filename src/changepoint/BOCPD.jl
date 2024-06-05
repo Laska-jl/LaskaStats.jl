@@ -1,7 +1,37 @@
 # https://arxiv.org/pdf/2302.04759
 # https://github.com/maltamiranomontero/DSM-bocd/tree/main
 
-function bocpd(data, hazard, m, grad_m, model, K = 50; verbose = false)
+"""
+    bocpd(
+        data::AbstractVector,
+        hazard::AbstractHazard,
+        m::Function,
+        grad_m::Function,
+        model::AbstractDSMModel,
+        K::Integer = 50;
+        verbose::Bool = false)
+
+Function for detecting changepoints in `data`.
+
+Uses Diffusion Score Matching Bayesian Online Changepoint Detection (DSM-BOCD) described in: https://proceedings.mlr.press/v202/altamirano23a.html.                 
+Original Python implementation by the authors of algorithm can be found at: https://github.com/maltamiranomontero/DSM-bocd?tab=readme-ov-file
+
+# Arguments
+
+- `data`: Vector of data in which to find changepoints.
+- `hazard`: Hazard function providing a changepoint prior. See [`LaskaStats.ConstantHazard`](@ref) for an example.
+- `m`: 
+
+
+"""
+function bocpd(
+        data::AbstractVector,
+        hazard::AbstractHazard,
+        m::Function,
+        grad_m::Function,
+        model::AbstractDSMModel,
+        K::Integer = 50;
+        verbose::Bool = false)
     dlen = length(data)
     log_R = fill(-Inf, (dlen + 1, dlen + 1))
     log_R[1, 1] = 0.0

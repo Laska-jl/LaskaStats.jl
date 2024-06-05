@@ -50,6 +50,7 @@ include("corr/acg.jl")
 
 include("similarity/LF.jl")
 
+include("changepoint/utilities/functions.jl")
 include("changepoint/BOCPD.jl")
 include("changepoint/hazard.jl")
 include("changepoint/omegaestimator.jl")
