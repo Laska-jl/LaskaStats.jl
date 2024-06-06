@@ -1,5 +1,5 @@
 function find_cp(R, lag)
-    changepoints = [0]
+    changepoints = Int64[]
     last_cp = 0
     for i in axes(R, 2)
         candidate = i - argmax(R[:, i])
