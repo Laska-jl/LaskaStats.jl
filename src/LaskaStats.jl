@@ -25,12 +25,16 @@ using LinearAlgebra
 using Optimisers
 using Zygote
 using Turing
-import SpecialFunctions: loggamma
+import SpecialFunctions: loggamma, gamma
 using TruncatedMVN
 using Random
+using StaticArrays
+using AdaptiveRejectionSampling
 
 # Utilities
-include("utils/psthutils.jl")
+
+# Distributions
+include("distributions/invchisq.jl")
 
 # Summarizing statistics
 include("summarize/cv2.jl")
@@ -44,7 +48,6 @@ export cv2, cv2mean, mad, relativefrequency, frequency, isi
 include("normalize/rangenormalize.jl")
 include("normalize/standardize.jl")
 
-include("responselatency/gaussianconv.jl")
 include("summarize/spikedensity.jl")
 
 include("trainsmooth/filters.jl")
@@ -62,5 +65,8 @@ include("changepoint/models/DSMGaussian.jl")
 include("changepoint/bocpdutils.jl")
 include("changepoint/omegaestimator.jl")
 include("changepoint/BOCPD.jl")
+
+# Clustering
+include("clustering/clustering.jl")
 
 end
