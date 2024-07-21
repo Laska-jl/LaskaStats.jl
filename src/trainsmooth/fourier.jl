@@ -32,3 +32,22 @@ function fouriersmooth(V::AbstractVector{T}, σ, m) where {T}
     derangenormalize!(rea, minimum(V), maximum(V))
     return rea
 end
+
+function fouriersmooth(v::AbstractVector, cutoff::Integer)
+    normcentered = rangenormalize(v)
+    premean = mean(normcentered)
+    prelength = length(v)
+    normcentered .-= premean
+    normcentered = vcat(normcentered, reverse(normcentered))
+    plan = plan_rfft(normcentered)
+    ft = plan * normcentered
+    ft[cutoff:end] .= zero(eltype(ft))
+    # @show length(v)
+    # iplan = plan_irfft(ft, length(v))
+    # rea = iplan * ft
+    rea = irfft(ft, length(v) * 2)
+    rea = rea[begin:prelength] 
+    rea .+= premean
+    derangenormalize!(rea, minimum(v), maximum(v))
+    return rea
+end

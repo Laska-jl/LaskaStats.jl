@@ -52,16 +52,16 @@ Normalize an `AbstractVector` in-place to values between 0 and 1. `min_v` and `m
 X' = \frac{(X-X_{min})}{X_{max}-X_{min}}
 ```
 """
-function rangenormalize!(v::AbstractVector{T},
-        min_v::T,
-        max_v::T) where {T <: AbstractFloat}
+function rangenormalize!(v::AbstractVector,
+        min_v,
+        max_v)
     diffx = max_v - min_v
     @. v = (v - min_v) / diffx
 end
 
-function derangenormalize!(v::AbstractVector{T},
-        premin::T,
-        premax::T) where {T <: AbstractFloat}
+function derangenormalize!(v::AbstractVector,
+        premin,
+        premax)
     diffx = premax - premin
     @. v = v * diffx + premin
 end
@@ -75,7 +75,7 @@ Normalize an `AbstractVector` to values between 0 and 1. `min_v` and `max_v` may
 X' = \frac{(X-X_{min})}{X_{max}-X_{min}}
 ```
 """
-function rangenormalize(v::AbstractVector{T}, min_v::T, max_v::T) where {T}
+function rangenormalize(v::AbstractVector, min_v, max_v)
     out = Vector{Float64}(deepcopy(v))
     rangenormalize!(out, min_v, max_v)
     return out
@@ -108,7 +108,7 @@ Normalize a `Vector`  to values between `range[1]` (``a``) and `range[2]` (``b``
 X' = a + \frac{(X-X_{min})(b-a)}{X_{max}-X_{min}}
 ```
 """
-function rangenormalize(v::AbstractVector{T}, range::NTuple{2, T}) where {T}
+function rangenormalize(v::AbstractVector, range::NTuple{2, T}) where {T}
     out = Vector{Float64}(deepcopy(v))
     rangenormalize!(out, range)
     return out

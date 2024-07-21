@@ -51,7 +51,7 @@ function acg(spikes::AbstractVector{T}, binsize, winsize, symmetrize = true) whe
 
     mask = ones(Bool, length(spikes))
 
-    corrarr = zeros(Int32, fld(winsize_bins, 2) + 1)
+    corrarr = zeros(Int64, fld(winsize_bins, 2) + 1)
 
     while any(mask[begin:(end - shift)])
         spike_diff = LaskaStats.diff_shifted(spikes, shift)

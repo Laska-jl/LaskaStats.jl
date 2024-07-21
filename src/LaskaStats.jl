@@ -29,7 +29,10 @@ import SpecialFunctions: loggamma, gamma
 using TruncatedMVN
 using Random
 using StaticArrays
-using AdaptiveRejectionSampling
+import StatsBase
+using KissSmoothing
+using Peaks
+using SingularSpectrumAnalysis
 
 # Utilities
 
@@ -43,6 +46,8 @@ include("summarize/frequency.jl")
 include("summarize/relativefrequency.jl")
 include("summarize/isi.jl")
 include("summarize/fanofactor.jl")
+include("summarize/rhythmindex.jl")
+include("summarize/acganalysis.jl")
 export cv2, cv2mean, mad, relativefrequency, frequency, isi
 
 include("normalize/rangenormalize.jl")

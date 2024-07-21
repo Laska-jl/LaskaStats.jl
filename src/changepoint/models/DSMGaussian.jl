@@ -92,7 +92,7 @@ function log_pred_prob(model::DSMGaussian, t, data, indices)
         loc = eta1 ./ eta2
         scale = @. sqrt(1 / eta2)
         distr = @. Normal(loc)
-        preds = @. pdf(distr, (x - loc) / scale) / scale
+        preds = @. Distributions.pdf(distr, (x - loc) / scale) / scale
         logpredprobs[k] = log(mean(preds))
     end
     return logpredprobs
