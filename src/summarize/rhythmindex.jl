@@ -54,62 +54,43 @@ If no initial peak is found the function returns `0.0`.
 """
 function rhythmindex end
 
-# function rhythmindex(
-#         experiment::PhyOutput,
-#         winsize::LaskaCore.TUnit,
-#         binsize::LaskaCore.TUnit,
-#         recordingtime::Union{LaskaCore.TUnit, Nothing} = nothing,
-#         first_peak_time::AbstractRange{<:LaskaCore.TUnit} = (10:40)u"ms",
-#         next_latency::LaskaCore.TUnit = 10u"ms",
-#         baseline_std_min::Real = 1,
-#         diff_std_min::Real = 2
-# )
-#     spikes = spiketimes.(clustervector(experiment))
-#     out = zeros(length(spikes))
-#     for i in eachindex(spikes)
-#         out[i] = rhythmindex(spikes[i], winsize, binsize, recordingtime, first_peak_time,
-#             next_latency, baseline_std_min, diff_std_min)
-#     end
-#     return out
-# end
+function rhythmindex(
+        experiment::PhyOutput,
+        winsize::LaskaCore.TUnit,
+        binsize::LaskaCore.TUnit,
+        diff_std_baseline::Real = 1,
+        diff_std_next::Real = 2
+)
+    spikes = spiketimes.(clustervector(experiment))
+    out = zeros(length(spikes))
+    for i in eachindex(spikes)
+        out[i] = rhythmindex(spikes[i], winsize, binsize, diff_std_baseline, diff_std_next)
+    end
+    return out
+end
 
-# function rhythmindex(
-#         cluster::LaskaCore.Cluster,
-#         winsize::LaskaCore.TUnit,
-#         binsize::LaskaCore.TUnit,
-#         recordingtime::Union{LaskaCore.TUnit, Nothing} = nothing,
-#         first_peak_time::AbstractRange{<:LaskaCore.TUnit} = (10:40)u"ms",
-#         next_latency::LaskaCore.TUnit = 10u"ms",
-#         baseline_std_min::Real = 1,
-#         diff_std_min::Real = 2
-# )
-#     rhythmindex(spiketimes(cluster), winsize, binsize, recordingtime,
-#         first_peak_time, next_latency, baseline_std_min, diff_std_min)
-# end
+function rhythmindex(
+        cluster::LaskaCore.Cluster,
+        winsize::LaskaCore.TUnit,
+        binsize::LaskaCore.TUnit,
+        diff_std_baseline::Real = 1,
+        diff_std_next::Real = 2
+)
+    rhythmindex(spiketimes(cluster), winsize, binsize, diff_std_baseline, diff_std_next)
+end
 
-# function rhythmindex(
-#         spikes::SpikeVector,
-#         winsize::LaskaCore.TUnit,
-#         binsize::LaskaCore.TUnit,
-#         recordingtime::Union{LaskaCore.TUnit, Nothing} = nothing,
-#         first_peak_time::AbstractRange{<:LaskaCore.TUnit} = (10:40)u"ms",
-#         next_latency::LaskaCore.TUnit = 10u"ms",
-#         baseline_std_min::Real = 1,
-#         diff_std_min::Real = 2
-# )
-#     winsize_samp = LaskaCore.timetosamplerate(spikes, winsize)
-#     binsize_samp = LaskaCore.timetosamplerate(spikes, binsize)
-#     if isnothing(recordingtime)
-#         recordingtime_samp = spikes[end]
-#     else
-#         recordingtime_samp = LaskaCore.timetosamplerate(spikes, recordingtime)
-#     end
-#     first_peak_time_samp = LaskaCore.timetosamplerate(spikes, first_peak_time)
-#     next_latency_samp = LaskaCore.timetosamplerate(spikes, next_latency)
+function rhythmindex(
+        spikes::SpikeVector,
+        winsize::LaskaCore.TUnit,
+        binsize::LaskaCore.TUnit,
+        diff_std_baseline::Real = 1,
+        diff_std_next::Real = 2
+)
+    winsize_samp = LaskaCore.timetosamplerate(spikes, winsize)
+    binsize_samp = LaskaCore.timetosamplerate(spikes, binsize)
 
-#     rhythmindex(spikes, winsize_samp, binsize_samp, recordingtime_samp,
-#         first_peak_time_samp, next_latency_samp, baseline_std_min, diff_std_min)
-# end
+    rhythmindex(spikes, winsize_samp, binsize_samp, diff_std_baseline, diff_std_next)
+end
 
 # Main function
 function rhythmindex(
@@ -167,10 +148,11 @@ function __filterpeaksvalleys!(peaks::Vector{T}, valleys::Vector{T}, autocorr, b
     for i in Iterators.drop(eachindex(peaks), 1)
         current = autocorr[peaks[i]]
         next_valley = Base.Sort.searchsortedfirst(valleys, peaks[i])
+        next_valley = next_valley > length(valleys) ? length(valleys) : next_valley
         if abs(current - baseline[peaks[i]]) > stdd * diff_std_baseline ||
            abs(current - autocorr[valleys[next_valley]]) > stdd * diff_std_next
             peakmask[i] = false
-        else
+        else # Break if current is too small to be included
             break
         end
     end
@@ -178,6 +160,7 @@ function __filterpeaksvalleys!(peaks::Vector{T}, valleys::Vector{T}, autocorr, b
     for i in eachindex(valleys)
         current = autocorr[valleys[i]]
         next_peak = Base.Sort.searchsortedfirst(peaks, valleys[i])
+        next_peak = next_peak > length(peaks) ? length(peaks) : next_peak
         if abs(current - baseline[valleys[i]]) > stdd * diff_std_baseline ||
            abs(autocorr[peaks[next_peak]] - current) > stdd * diff_std_next
             valleymask[i] = false
@@ -188,6 +171,7 @@ function __filterpeaksvalleys!(peaks::Vector{T}, valleys::Vector{T}, autocorr, b
 
     deleteat!(peaks, peakmask)
     deleteat!(valleys, valleymask)
+
     return true
 end
 

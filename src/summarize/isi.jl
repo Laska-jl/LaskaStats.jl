@@ -108,7 +108,7 @@ and stores the result in the `info` dataframe of `exp`.
 
 """
 function percentileisi!(exp::PhyOutput, perc::AbstractFloat)
-    exp.info[:, "ISI_perc" * split(repr(round(perc), sigdigits = 2), ".")[2]] = percentileisi(
+    exp.info[:, "ISI_perc" * split(repr(round(perc, sigdigits = 2)), ".")[2]] = percentileisi(
         exp, perc)
 end
 
@@ -129,7 +129,6 @@ function medianisi!(experiment::PhyOutput)
     clusters = clustervector(experiment)
     experiment.info.median_isi = @. median(isi(clusters))
 end
-
 
 # function isi_distr_exp_diff(arguments)
 #     
