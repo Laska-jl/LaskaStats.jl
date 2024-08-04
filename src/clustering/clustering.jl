@@ -39,11 +39,14 @@ function __logprobs_t_dist!(
     d = length(cmeans[1])
     cprec = __precisions(b)
 
+    @show nk
     m = @. inv((nk / (d + 1)) * cprec)
 
     n = 0
+    @show m
     for i in 1:__nactive(b)
         n += 1
+        @show n
         logv[i] = log(nk[i]) +
                   logpdf(
             MvTDist(
@@ -58,9 +61,11 @@ function __update_component_params!(b::ComponentBuffer, component)
     m = __nk(b, component)
     datainds = findall(x -> x == component, __assignments(b))
     data = __data(b)[:, datainds]
+    # BUG: Sometimes, data is empty??
     data_mean = vec(mean(data, dims = 2))
     mu0 = __means(b, component)[]
     prec0 = __precisions(b, component)[]
+    @show data data_mean mu0 prec0
     __setparams!(b, component,
         ((m + 1) * mu0 + data_mean * m) / (m * 2 + 1),
         inv(
@@ -69,6 +74,7 @@ function __update_component_params!(b::ComponentBuffer, component)
             transpose(data_mean - mu0)
         )
     )
+    @show __precisions(b, component)
 end
 
 # NOTE: Do we need to check n_active etc here?
