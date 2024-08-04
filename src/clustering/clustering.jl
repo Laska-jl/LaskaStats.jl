@@ -305,6 +305,7 @@ function cluster3(data, z_init, alpha, maxiter = 1000)
             lambda[:, iteration] = rand(MvNormal(vec(lambda_mean), lambda_sig))
 
             # Update parameters of the changed cluster
+# NOTE: Check data of changed component here!
             if !iszero(changed_component)
                 __update_component_params!(cbuffer, changed_component)
             end
