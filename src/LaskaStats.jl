@@ -6,15 +6,15 @@ module LaskaStats
 using Reexport
 using LaskaCore
 using LaskaCore:
-                 RelativeSpikeVector,
-                 SpikeVector,
-                 AbstractSpikeVector,
-                 Cluster,
-                 RelativeCluster,
-                 AbstractCluster,
-                 AbstractExperiment,
-                 PhyOutput,
-                 RelativeSpikes
+    RelativeSpikeVector,
+    SpikeVector,
+    AbstractSpikeVector,
+    Cluster,
+    RelativeCluster,
+    AbstractCluster,
+    AbstractExperiment,
+    PhyOutput,
+    RelativeSpikes
 using Statistics
 using FFTW
 using Unitful
@@ -31,7 +31,6 @@ using Random
 using StaticArrays
 import StatsBase
 using KissSmoothing
-using Peaks
 using SingularSpectrumAnalysis
 import InvertedIndices: Not
 import PDMats
@@ -73,8 +72,5 @@ include("changepoint/bocpdutils.jl")
 include("changepoint/omegaestimator.jl")
 include("changepoint/BOCPD.jl")
 
-# Clustering
-include("clustering/clustering.jl")
-include("clustering/cluster_refactor.jl")
 
 end
