@@ -82,23 +82,21 @@ function __logprobs_t_dist!(
         logv::AbstractVector{T}, b::ComponentBuffer{D, N, T}, data) where {D, N, T}
     nk = __nk(b)
     cmeans = __means(b)
-    d = length(cmeans[1])
     cprec = __precisions(b)
 
-    m = @. inv(cprec)
-
     for i in 1:__nactive(b)
+        m = inv(cprec[i])
         logv[i] = log(nk[i]) +
                   logpdf(
             MvNormal(
                 Vector{T}(cmeans[i]),
-                PDMats.PDMat(m[i], cholesky(Hermitian(m[i])))
+                PDMats.PDMat(m, cholesky(Hermitian(m)))
             ), data)
     end
 end
 
-function __logprob_t_dist_new(b::ComponentBuffer, mu, prec, alpha, data)
-    m = prec
+function __logprob_mvn_dist_new(mu, prec, alpha, data)
+    m = inv(prec)
     log(alpha) + logpdf(MvNormal(
             mu,
             PDMats.PDMat(m, cholesky(Hermitian(m)))
@@ -112,14 +110,15 @@ function __update_component_params!(b::ComponentBuffer, component)
     data_mean = vec(mean(data, dims = 2))
     mu0 = __means(b, component)[]
     prec0 = __precisions(b, component)[]
-    __setparams!(b, component,
-        (k0 * mu0 + data_mean) / (k0 + 1),
-        inv(
-            prec0 + pairwisedeviationpsum(data, data_mean) +
-            (k0 / (k0 + 1)) * (data_mean - mu0) *
-            transpose(data_mean - mu0)
-        )
+    mum = (mu0 + k0 * data_mean) / (k0 + 1)
+    precm = inv(
+        inv(prec0) + pairwisedeviationpsum(data, data_mean) +
+        (k0 / (k0 + 1)) * ((data_mean - mu0) *
+                           transpose(data_mean - mu0))
     )
+    __setparams!(b, component,
+        mum,
+        precm)
 end
 
 # Remove component 'n' and, if the component becomes empty, remove it, lower number of active
@@ -137,8 +136,8 @@ function __removedata!(b::ComponentBuffer, n::Integer)
         else # If this was not the last component, move the last one to take its place
             n_components = __nactive(b)
             last_inds = findall(x -> x == n_components, __assignments(b))
-            # Move the count for the last component to the emtied one
-            __setnk!(b, c, __nk(b, n_components))
+            # Move the count for the last component to the emptied one
+            __setnk!(b, c, 0)
             # Move the parameters of the last component to the emptied one
             __setparams!(b, c, __getparams(b, n_components))
             __lowernactive!(b)
@@ -187,16 +186,6 @@ function __assign_new!(b::ComponentBuffer, n::Integer, c::Integer)
     __setnk!(b, c, 1)
 end
 
-# Unassign datapoint
-# Sets the indicator for the data point to 0 and lowers the count in the nk
-function __unassign!(b::ComponentBuffer, n::Integer, prev_assignment::Integer)
-    if prev_assignment > __nactive(b)
-        throw(ArgumentError("Attempted to unassign data to component $prev_assignment of ComponentBuffer with $(__nactive(b)) active components"))
-    end
-    b.z[n] = 0
-    __lowernk!(b, prev_assignment)
-end
-
 __nactive(b::ComponentBuffer) = b.n_active[]
 __bumpnactive!(b::ComponentBuffer) = b.n_active[] += 1
 __lowernactive!(b::ComponentBuffer) = b.n_active[] -= 1
@@ -233,6 +222,9 @@ end
 
 function __setparams!(b::ComponentBuffer{D, N, T}, component::Integer,
         params::Tuple{<:AbstractVector{T}, <:AbstractMatrix{T}}) where {D, N, T}
+    if component > __nactive(b)
+        throw(ArgumentError("Attempted to assign non-existent component at index $component"))
+    end
     __setparams!(b, component, params[1], params[2])
 end
 
@@ -298,6 +290,9 @@ function cluster3(data, z_init, alpha, maxiter = 1000)
     push!(component_means, [MVector{D, Float64}(undef)])
     component_means[1][1] = rand(MvNormal(lambda[:, 1], Symmetric(inv(r[:, :, 1]))))
 
+    # update non-cluster specific parameters
+    ## r
+
     # Sample initial values for component precisions
     w[:, :, 1] = rand(Wishart(D, cvar_data))
     push!(component_precisions,
@@ -317,6 +312,20 @@ function cluster3(data, z_init, alpha, maxiter = 1000)
     # Main iteration loop
     for iteration in 2:maxiter
         iszero(iteration % 100) && println(iteration)
+        cluster_means = clustermeans(
+            __data(cbuffer), __assignments(cbuffer), __nactive(cbuffer), __nk(cbuffer))
+        r_deg, r_scale = conditional_mvn_prec(
+            __nactive(cbuffer), D, cvar_data,
+            cluster_means, vec(lambda[:, iteration - 1]))
+        r[:, :, iteration] = rand(Wishart(
+            r_deg, Matrix{Float64}(Symmetric(inv(r_scale)))))
+        ## lambda
+
+        cmeans = mean(__means(cbuffer))
+        lambda_mean, lambda_sig = conditional_lambda(
+            r[:, :, iteration - 1], prec_data, vec(mean_data), __nactive(cbuffer), cmeans
+        )
+        lambda[:, iteration] = rand(MvNormal(vec(lambda_mean), lambda_sig))
 
         # Use posteriors from last iteration as priors
 
@@ -325,34 +334,6 @@ function cluster3(data, z_init, alpha, maxiter = 1000)
 
             changed_component = __removedata!(cbuffer, i)
 
-            cluster_means = clustermeans(
-                data[:, Not(i)], __assignments(cbuffer, Not(i)), __nactive(cbuffer), __nk(cbuffer))
-            n_clusters = __nactive(cbuffer)
-
-            # update non-cluster specific parameters
-            ## r
-
-            r_deg, r_scale = conditional_mvn_prec(
-                n_clusters, D, cvar_data,
-                cluster_means, vec(lambda[:, iteration - 1]))
-            r[:, :, iteration] = rand(Wishart(
-                r_deg, Matrix{Float64}(Symmetric(inv(r_scale)))))
-
-            ## lambda
-
-            cmeans = mean(__means(cbuffer))
-            lambda_mean, lambda_sig = conditional_lambda(
-                r[:, :, iteration - 1], prec_data, vec(mean_data), __nactive(cbuffer), cmeans
-            )
-            lambda[:, iteration] = rand(MvNormal(vec(lambda_mean), lambda_sig))
-
-            # Update parameters of the changed cluster
-            # NOTE: Check data of changed component here!
-
-            if !iszero(changed_component)
-                __update_component_params!(cbuffer, changed_component)
-            end
-
             # Calculate probabilities for each cluster
             __logprobs_t_dist!(logp_clusters, cbuffer, __data(cbuffer, i))
 
@@ -360,9 +341,9 @@ function cluster3(data, z_init, alpha, maxiter = 1000)
             mu_new = rand(MvNormal(
                 lambda[:, iteration], Symmetric(inv(r[:, :, iteration]))))
             # TODO: Figure out updating precision priors!
-            prec_new = rand(Wishart(D, cvar_data))
-            logp_clusters[n_clusters + 1] = log(alpha) + logpdf(
-                MvNormal(mu_new, Hermitian(inv(prec_new))), __data(cbuffer, i))
+            prec_new = rand(Wishart(D, cvar_data^(-2)))
+            logp_clusters[__nactive(cbuffer) + 1] = __logprob_t_dist_new(
+                mu_new, prec_new, alpha, __data(cbuffer, i))
             max_logp_clusters = maximum(@view(logp_clusters[begin:(__nactive(cbuffer) + 1)]))
             logp_clusters[begin:(__nactive(cbuffer) + 1)] .-= max_logp_clusters
 
@@ -373,14 +354,18 @@ function cluster3(data, z_init, alpha, maxiter = 1000)
 
             # Add new params if new cluster
             if z_new == __nactive(cbuffer) + 1
-                println("=========NEW")
                 __assign_new!(cbuffer, i, z_new)
-                __setparams!(cbuffer, n_clusters + 1, mu_new, prec_new)
-                __update_component_params!(cbuffer, z_new)
+                __setparams!(cbuffer, z_new, mu_new, prec_new)
+            else
+                # Assign datapoint to selected cluster
+                __assign!(cbuffer, i, z_new)
             end
-            # Assign datapoint to selected cluster
-            __assign!(cbuffer, i, z_new)
         end # Closes data point iteration loop
+        # Update parameters of the changed cluster
+
+        for c in 1:__nactive(cbuffer)
+            __update_component_params!(cbuffer, c)
+        end
         res_assignments[:, iteration] = __assignments(cbuffer)
         push!(component_means, __means(cbuffer))
         push!(component_precisions, __precisions(cbuffer))
@@ -571,8 +556,6 @@ end
 
 function __conditional_lambda(b::ComponentBuffer, r0, lambda0)
     k0 = __nactive(b)
-    data = __data(b)
-    data_mean = vec(mean(data, dims = 2))
     cmeans = __means(b)
     xbar = sum(cmeans) ./ k0
     mu = (k0 * lambda0 + xbar) / (k0 + 1)

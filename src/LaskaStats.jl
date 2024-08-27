@@ -75,5 +75,6 @@ include("changepoint/BOCPD.jl")
 
 # Clustering
 include("clustering/clustering.jl")
+include("clustering/cluster_refactor.jl")
 
 end
