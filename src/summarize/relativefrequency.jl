@@ -13,8 +13,6 @@ spikes/bins in bins before time=0.
 
 
 
-A custom `StepRange` may be provided instead of `period`. In this case, the period will be the `step` of the `StepRange`
-
 # Examples
 
 ```julia
