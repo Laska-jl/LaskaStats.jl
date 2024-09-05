@@ -24,7 +24,6 @@ using Distributions
 using LinearAlgebra
 using Optimisers
 using Zygote
-using Turing
 import SpecialFunctions: loggamma, gamma
 using TruncatedMVN
 using Random

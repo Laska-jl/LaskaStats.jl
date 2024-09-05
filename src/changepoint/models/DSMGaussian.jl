@@ -68,27 +68,6 @@ function log_pred_prob(model::DSMGaussian, t, data, indices)
         eta = TruncatedMVN.sample(dist, model.b)
         eta1 = eta[1, :]
         eta2 = eta[2, :]
-        # eta1 = rand(truncated(Normal(model.mu[2, 1, i], model.Sigma[1, 1, i]),
-        #         lb[1],
-        #         Inf
-        #     ),
-        #     model.b
-        # )
-        # eta2 = rand(
-        #     truncated(
-        #         Normal(model.mu[2, 1, i], model.Sigma[2, 2, i]),
-        #         lb[2],
-        #         Inf
-        #     ),
-        #     model.b
-        # )
-        #
-        # eta = rand(
-        #     truncated(MvNormal(reshape(model.mu[i], model.p), model.Sigma[i]), lb, ub),
-        #     model.b)
-        # eta1 = eta[:, 1]
-        # eta2 = eta[:, 2]
-
         loc = eta1 ./ eta2
         scale = @. sqrt(1 / eta2)
         distr = @. Normal(loc)
