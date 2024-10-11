@@ -5,6 +5,16 @@ module LaskaStats
 
 using Reexport
 using LaskaCore
+using LaskaCore:
+                 RelativeSpikeVector,
+                 SpikeVector,
+                 AbstractSpikeVector,
+                 Cluster,
+                 RelativeCluster,
+                 AbstractCluster,
+                 AbstractExperiment,
+                 PhyOutput,
+                 RelativeSpikes
 using Statistics
 using FFTW
 using Unitful
@@ -39,6 +49,10 @@ include("summarize/rhythmindex.jl")
 include("summarize/acganalysis.jl")
 export cv2, cv2mean, mad, relativefrequency, frequency, isi
 
+# Spike recording quality metrics
+include("quality/stability.jl")
+include("quality/missed.jl")
+include("quality/isiviolations.jl")
 
 include("normalize/rangenormalize.jl")
 include("normalize/standardize.jl")
