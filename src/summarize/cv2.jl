@@ -26,7 +26,6 @@ function cv2(cluster::Cluster)
     return out
 end
 
-
 """
     cv2mean(cluster::Cluster)
 

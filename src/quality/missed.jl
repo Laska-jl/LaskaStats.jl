@@ -1,5 +1,3 @@
-# Estimate number of missed spikes
-
 """
     missedspikes(amplitudes::AbstractVector; kernelwidth=3, histbins::Integer=500)
 
@@ -9,7 +7,7 @@ Attempts to fit a gaussian to the distribution of amplitude of amplitudess and c
 spikes that fell below the detection limit.
 """
 function missedspikes(amplitudes::AbstractVector; kernelwidth=3, histbins::Integer=500)
-    h = fit(Histogram, amplitudes, nbins=histbins)
+    h = fit(StatsBase.Histogram, amplitudes, nbins=histbins)
     gau = imfilter(h.weights, Kernel.gaussian((kernelwidth,)))
 
     maxind = argmax(gau)
