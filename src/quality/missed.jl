@@ -20,3 +20,21 @@ function missedspikes(amplitudes::AbstractVector; kernelwidth=3, histbins::Integ
 
     return nmissed / (sum(gau) + nmissed)
 end
+
+"""
+    function missedspikespartition(amplitudes::AbstractVector, spikes_per_partition::Integer; kernelwidth = 3, histbins::Integer = 500)
+
+
+Estimate the percentage of missed spikes `spikes_per_partition` spikes at a time.
+Estimation is carried out in the same way as [`LaskaCore.missedspikes`](@ref).
+"""
+function missedspikespartition(amplitudes::AbstractVector, spikes_per_partition::Integer; kernelwidth = 3, histbins::Integer = 500)
+    n_partitions = ceil(length(amplitudes) / spikes_per_partition) |> Int64
+    out = Vector{Float64}(undef, n_partitions)
+
+    for (i, amps) in enumerate(Iterators.partition(amplitudes, spikes_per_partition))
+        out[i] = missedspikes(amps; kernelwidth = kernelwidth, histbins=histbins)
+    end
+
+    return out
+end
