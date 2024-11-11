@@ -6,52 +6,52 @@ DOI: 10.1111/j.1460-9568.1995.tb00657.x
 
 # TODO: Write docstrings for these
 
-"""
-    function rhythmindex(
-            spikes,
-            winsize,
-            binsize,
-            recordingtime = nothing,
-            first_peak_time = (10:40)u"ms",
-            next_latency = 10u"ms",
-            baseline_std_min = 1,
-            diff_std_min = 2
-    )
-
-Calculates the rhythm index (RI) similarily to [lang_differential_1997](@cite).
-
-Operates in the following manner:
-
-
-1. Calculate the baseline: ``\\frac{(total\\ number\\ of\\ spikes)^2 \\times bin\\ width}{recording\\ time}``
-2. Finds the maximum within the time frame specified in `first_peak_time`.
-3. Searches for the next valley within the time frame ``t_{previous} + \\frac{t_{first}}{2} - bin\\_latency`` to ``t_{previous} + t_{first}  \\times 1.5 + bin\\_latency``.
-4. Repeat step 2 until the whole ACG has been searched.
-5. Calculate the RI as shown below.
-
-Peaks/valleys are included by default if they are one standard deviation above/below the baseline *or* if they are two standard deviations greater/lesser than the last peak/valley.
-These limits can be controlled with `baseline_std_min` and `diff_std_min` respectively.
-
-Once peaks and valleys have been found the RI is caclulated according to:
-
-``\\frac{a_1}{z} + \\frac{b_1}{z} + ... + \\frac{a_n}{z} + \\frac{b_n}{z}``
-
-Where ``z`` is the total number of spikes and ``a_n``/``b_n`` is the absolute difference of the n:th peak/valley from the baseline in the ACG.
-
-If no initial peak is found the function returns `0.0`.
-
-# Arguments
-
-- `spikes`: May be a [`LaskaCore.SpikeVector`](@ref), a [`LaskaCore.Cluster`](@ref) or a [`LaskaCore.PhyOutput`](@ref). In the last case, the output will be a `Vector` with the RI for all `Cluster`s in the `PhyOutput`.
-- `winsize`: Window size for calculating the autocorrelogram (ACG).
-- `binsize`: Bin size for caclulating the ACG.
-- `recordingtime`: Total recording time of the experiment for calculating the baseline. Defaults to `nothing` in which the last spike time is used.
-- `first_peak_time`: The time range in which the first peak should be sought. Defaults to 10-40ms.
-- `next_latency`: Influences the length of the time segment in which to search for the next peak/valley. See step 3 above. Defaults to 10ms.
-- `baseline_std_min`: Controls how many standard deviations above/below the baseline a peak must reach to be included. Defaults to 1.
-- `diff_std_min`: Controls how many standard deviations greater/lesser a potential peak/valley must be compared to the last peak/valley to be included. Defaults to 2.
-
-"""
+# """
+#     function rhythmindex(
+#             spikes,
+#             winsize,
+#             binsize,
+#             recordingtime = nothing,
+#             first_peak_time = (10:40)u"ms",
+#             next_latency = 10u"ms",
+#             baseline_std_min = 1,
+#             diff_std_min = 2
+#     )
+#
+# Calculates the rhythm index (RI) similarily to [lang_differential_1997](@cite).
+#
+# Operates in the following manner:
+#
+#
+# 1. Calculate the baseline: ``\\frac{(total\\ number\\ of\\ spikes)^2 \\times bin\\ width}{recording\\ time}``
+# 2. Finds the maximum within the time frame specified in `first_peak_time`.
+# 3. Searches for the next valley within the time frame ``t_{previous} + \\frac{t_{first}}{2} - bin\\_latency`` to ``t_{previous} + t_{first}  \\times 1.5 + bin\\_latency``.
+# 4. Repeat step 2 until the whole ACG has been searched.
+# 5. Calculate the RI as shown below.
+#
+# Peaks/valleys are included by default if they are one standard deviation above/below the baseline *or* if they are two standard deviations greater/lesser than the last peak/valley.
+# These limits can be controlled with `baseline_std_min` and `diff_std_min` respectively.
+#
+# Once peaks and valleys have been found the RI is caclulated according to:
+#
+# ``\\frac{a_1}{z} + \\frac{b_1}{z} + ... + \\frac{a_n}{z} + \\frac{b_n}{z}``
+#
+# Where ``z`` is the total number of spikes and ``a_n``/``b_n`` is the absolute difference of the n:th peak/valley from the baseline in the ACG.
+#
+# If no initial peak is found the function returns `0.0`.
+#
+# # Arguments
+#
+# - `spikes`: May be a [`LaskaCore.SpikeVector`](@ref), a [`LaskaCore.Cluster`](@ref) or a [`LaskaCore.PhyOutput`](@ref). In the last case, the output will be a `Vector` with the RI for all `Cluster`s in the `PhyOutput`.
+# - `winsize`: Window size for calculating the autocorrelogram (ACG).
+# - `binsize`: Bin size for caclulating the ACG.
+# - `recordingtime`: Total recording time of the experiment for calculating the baseline. Defaults to `nothing` in which the last spike time is used.
+# - `first_peak_time`: The time range in which the first peak should be sought. Defaults to 10-40ms.
+# - `next_latency`: Influences the length of the time segment in which to search for the next peak/valley. See step 3 above. Defaults to 10ms.
+# - `baseline_std_min`: Controls how many standard deviations above/below the baseline a peak must reach to be included. Defaults to 1.
+# - `diff_std_min`: Controls how many standard deviations greater/lesser a potential peak/valley must be compared to the last peak/valley to be included. Defaults to 2.
+#
+# """
 function rhythmindex end
 
 function rhythmindex(
@@ -226,26 +226,26 @@ end
 
 # Oscillation frequency as reciprocal first peak delay
 
-"""
-    oscillationfrequency(
-        spikes::SpikeVector,
-        binsize,
-        winsize,
-        first_peak_time,
-        diff_std_baseline = 1
-    )
-
-Oscillation frequency as described in [`lang_differential_1997`](@cite).
-
-Returns the reciprocal of the latency of the first peak in the autocorrelogram (ACG).
-Peaks are recognized as the maximum value within the time span provided in `first_peak_time`
-that exceed `baseline + standard_deviation * diff_std_baseline`.
-
-# Arguments
-
-- `spikes`:
-
-"""
+# """
+#     oscillationfrequency(
+#         spikes::SpikeVector,
+#         binsize,
+#         winsize,
+#         first_peak_time,
+#         diff_std_baseline = 1
+#     )
+#
+# Oscillation frequency as described in [`lang_differential_1997`](@cite).
+#
+# Returns the reciprocal of the latency of the first peak in the autocorrelogram (ACG).
+# Peaks are recognized as the maximum value within the time span provided in `first_peak_time`
+# that exceed `baseline + standard_deviation * diff_std_baseline`.
+#
+# # Arguments
+#
+# - `spikes`:
+#
+# """
 function oscillationfrequency end
 
 function oscillationfrequency(
