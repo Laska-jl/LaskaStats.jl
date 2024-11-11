@@ -32,7 +32,6 @@ import StatsBase
 using KissSmoothing
 using SingularSpectrumAnalysis
 import InvertedIndices: Not
-import PDMats
 import ImageFiltering: imfilter, Kernel
 
 
