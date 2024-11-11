@@ -32,6 +32,9 @@ import StatsBase
 using KissSmoothing
 using SingularSpectrumAnalysis
 import InvertedIndices: Not
+import PDMats
+import ImageFiltering: imfilter, Kernel
+
 
 # Utilities
 
@@ -47,6 +50,11 @@ include("summarize/isi.jl")
 include("summarize/rhythmindex.jl")
 include("summarize/acganalysis.jl")
 export cv2, cv2mean, mad, relativefrequency, frequency, isi
+
+# Spike recording quality metrics
+include("quality/stability.jl")
+include("quality/missed.jl")
+include("quality/isiviolations.jl")
 
 include("normalize/rangenormalize.jl")
 include("normalize/standardize.jl")

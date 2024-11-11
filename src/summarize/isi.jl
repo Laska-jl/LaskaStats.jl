@@ -9,7 +9,7 @@
 Calculate the ISI of each spike in `cluster`.
 
 """
-function isi(cluster::AbstractCluster{T, U}) where {T, U}
+function isi(cluster::AbstractCluster)
     return isi(spiketimes(cluster))
 end
 
