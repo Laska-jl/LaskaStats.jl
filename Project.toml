@@ -1,7 +1,7 @@
 name = "LaskaStats"
 uuid = "de767ba9-e829-4e7c-bf82-062dc00bf36c"
 authors = ["Elias Sjölin", "<elias.sjolin@gmail.com>"]
-version = "1.0.2"
+version = "1.0.3"
 
 [deps]
 DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
