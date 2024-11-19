@@ -14,10 +14,11 @@ function missedspikes(amplitudes::AbstractVector; kernelwidth = 3, histbins::Int
 
     @views begin
         diffind = findfirst(
-            Base.Fix2(isless, zero(eltype(gau))), @. gau[maxind:end] - gau[begin]) + maxind
+            Base.Fix2(isless, zero(eltype(gau))), @. gau[maxind:end] - gau[begin])
     end
-
     isnothing(diffind) && return 0.0
+
+    diffind += maxind
 
     nmissed = sum(@view(gau[diffind:end]))
 
