@@ -74,6 +74,7 @@ function updatemask!(mask, shift, spikediff, winsizebins)
     va = @views mask[begin:(end - shift)]
     vb = @views va[spikediff .> fld(winsizebins, 2)]
     vb .= zero(Bool)
+    nothing
 end
 
 function diff_shifted(v, steps)

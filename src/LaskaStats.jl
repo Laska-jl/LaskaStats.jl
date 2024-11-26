@@ -47,6 +47,7 @@ include("summarize/relativefrequency.jl")
 include("summarize/isi.jl")
 include("summarize/rhythmindex.jl")
 include("summarize/acganalysis.jl")
+include("summarize/entropy.jl")
 export cv2, cv2mean, mad, relativefrequency, frequency, isi
 
 # Spike recording quality metrics
