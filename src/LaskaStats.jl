@@ -67,13 +67,4 @@ include("corr/acg.jl")
 
 include("similarity/LF.jl")
 
-include("changepoint/utils/functions.jl")
-include("changepoint/hazard.jl")
-include("changepoint/DSMmodels.jl")
-include("changepoint/models/DSMExponentialGaussian.jl")
-include("changepoint/models/DSMGaussian.jl")
-include("changepoint/bocpdutils.jl")
-include("changepoint/omegaestimator.jl")
-include("changepoint/BOCPD.jl")
-
 end
