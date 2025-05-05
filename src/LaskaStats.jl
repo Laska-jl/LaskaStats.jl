@@ -34,7 +34,6 @@ using SingularSpectrumAnalysis
 import InvertedIndices: Not
 import ImageFiltering: imfilter, Kernel
 
-
 # Utilities
 
 # Distributions
@@ -48,6 +47,7 @@ include("summarize/relativefrequency.jl")
 include("summarize/isi.jl")
 include("summarize/rhythmindex.jl")
 include("summarize/acganalysis.jl")
+include("summarize/entropy.jl")
 export cv2, cv2mean, mad, relativefrequency, frequency, isi
 
 # Spike recording quality metrics
@@ -66,14 +66,5 @@ include("trainsmooth/fourier.jl")
 include("corr/acg.jl")
 
 include("similarity/LF.jl")
-
-include("changepoint/utils/functions.jl")
-include("changepoint/hazard.jl")
-include("changepoint/DSMmodels.jl")
-include("changepoint/models/DSMExponentialGaussian.jl")
-include("changepoint/models/DSMGaussian.jl")
-include("changepoint/bocpdutils.jl")
-include("changepoint/omegaestimator.jl")
-include("changepoint/BOCPD.jl")
 
 end
